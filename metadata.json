@@ -1,0 +1,6 @@
+{
+  "name": "Cacao",
+  "description": "Premium activewear store with real-time order tracking and minimalist aesthetic.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
