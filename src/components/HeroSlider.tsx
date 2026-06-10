@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import runnerImg from "../assets/images/cacao_banner_runner_1779498663132.png";
+import banner1Img from "../assets/images/banner1.png";
 import femaleImg from "../assets/images/cacao_banner_female_1779498677970.png";
 import boutiqueImg from "../assets/images/cacao_banner_boutique_1779498697804.png";
 
@@ -9,7 +9,7 @@ import boutiqueImg from "../assets/images/cacao_banner_boutique_1779498697804.pn
 const SLIDES = [
   {
     id: 1,
-    image: runnerImg,
+    image: banner1Img,
     subtitle: "Rendimiento y Precisión",
     title: "DISEÑO QUE SE ADAPTA A TU VELOCIDAD",
     description: "Materiales técnicos microporosos y geometría de compresión para superar tus propios límites con elegancia.",
