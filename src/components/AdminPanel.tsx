@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { auth, db, storage, handleFirestoreError, OperationType } from "../firebase";
-import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, User } from "firebase/auth";
+import { signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut, User } from "firebase/auth";
 import { collection, doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { Product, ProductCategory, ProductSize } from "../types";
@@ -55,7 +55,7 @@ export default function AdminPanel() {
     try {
       setLoading(true);
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
       console.error(error);
       alert("Error al iniciar sesión: " + error.message + "\n\nSi estás en Vercel, asegúrate de añadir 'cacaocol.vercel.app' a los dominios autorizados en Firebase Authentication.");
