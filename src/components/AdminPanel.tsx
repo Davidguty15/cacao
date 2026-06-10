@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { auth, db, storage } from "../firebase";
 import { 
   signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
   onAuthStateChanged, 
   signOut, 
   User 
@@ -34,7 +33,6 @@ export default function AdminPanel() {
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authError, setAuthError] = useState("");
-  const [isRegistering, setIsRegistering] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
 
   useEffect(() => {
@@ -65,11 +63,7 @@ export default function AdminPanel() {
     setAuthLoading(true);
     
     try {
-      if (isRegistering) {
-        await createUserWithEmailAndPassword(auth, authEmail, authPassword);
-      } else {
-        await signInWithEmailAndPassword(auth, authEmail, authPassword);
-      }
+      await signInWithEmailAndPassword(auth, authEmail, authPassword);
     } catch (error: any) {
       console.error("Auth error:", error);
       let errMsg = "Error de autenticación.";
@@ -214,19 +208,9 @@ export default function AdminPanel() {
               disabled={authLoading}
               className="w-full bg-black text-white px-8 py-3.5 font-black text-xs uppercase tracking-widest hover:bg-neutral-800 active:scale-[0.98] transition-all disabled:opacity-50 mt-4"
             >
-              {authLoading ? "PROCESANDO..." : (isRegistering ? "CREAR CUENTA Y ENTRAR" : "INGRESAR AL SISTEMA")}
+              {authLoading ? "PROCESANDO..." : "INGRESAR AL SISTEMA"}
             </button>
           </form>
-
-          <div className="mt-8 text-center border-t-2 border-neutral-100 pt-6">
-            <button 
-              type="button"
-              onClick={() => { setIsRegistering(!isRegistering); setAuthError(""); }}
-              className="text-[10px] font-black uppercase tracking-widest text-neutral-400 hover:text-black transition-colors"
-            >
-              {isRegistering ? "¿YA TIENES CUENTA? INICIA SESIÓN" : "¿NO TIENES CUENTA? REGÍSTRATE"}
-            </button>
-          </div>
         </div>
       </div>
     );
