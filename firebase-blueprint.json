@@ -1,0 +1,46 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "A Cacao Activewear product",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "sizeOptions": { "type": "array", "items": { "type": "string" } },
+        "colorOptions": { "type": "array", "items": { "type": "string" } },
+        "mainImage": { "type": "string" },
+        "galleryImages": { "type": "array", "items": { "type": "string" } },
+        "rating": { "type": "number" },
+        "reviewsCount": { "type": "number" },
+        "isNew": { "type": "boolean" },
+        "isFeatured": { "type": "boolean" },
+        "specifications": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "name", "price", "description", "category", "sizeOptions", "colorOptions", "mainImage", "galleryImages", "rating", "reviewsCount", "createdAt"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "An admin user",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string"}
+      },
+      "required": ["email"]
+    }
+  },
+  "firestore": {
+    "products/{productId}": {
+      "schema": "Product",
+      "description": "All products in the store"
+    },
+    "admins/{adminId}": {
+      "schema": "Admin",
+      "description": "List of admin users"
+    }
+  }
+}

@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // --------------------------------------------------------------------------------
+    // GLOBAL SAFETY NET
+    // --------------------------------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --------------------------------------------------------------------------------
+    // PRIMITIVES & HELPERS
+    // --------------------------------------------------------------------------------
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    function incoming() { 
+      return request.resource.data; 
+    }
+    function existing() { 
+      return resource.data; 
+    }
+    function isSignedIn() { 
+      return request.auth != null && request.auth.token.email_verified == true; 
+    }
+    function isAdmin() { 
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); 
+    }
+
+    // --------------------------------------------------------------------------------
+    // VALIDATION HELPERS
+    // --------------------------------------------------------------------------------
+    function isValidProduct(data) {
+      return data.keys().hasAll(['id', 'name', 'price', 'description', 'category', 'sizeOptions', 'colorOptions', 'mainImage', 'galleryImages', 'rating', 'reviewsCount', 'createdAt'])
+        && data.id is string && data.id.size() > 0 && data.id.size() <= 128
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 200
+        && data.price is number && data.price >= 0
+        && data.description is string && data.description.size() <= 5000
+        && data.category is string && data.category.size() <= 100
+        && data.sizeOptions is list && data.sizeOptions.size() <= 20
+        && data.colorOptions is list && data.colorOptions.size() <= 50
+        && data.mainImage is string && data.mainImage.size() <= 1000
+        && data.galleryImages is list && data.galleryImages.size() <= 20
+        && data.rating is number && data.rating >= 0 && data.rating <= 5
+        && data.reviewsCount is number && data.reviewsCount >= 0
+        && data.createdAt is timestamp;
+    }
+
+    // --------------------------------------------------------------------------------
+    // COLLECTIONS
+    // --------------------------------------------------------------------------------
+    match /admins/{adminId} {
+      // Bootstrapped admin logic or manual insert via console
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == adminId);
+      allow write: if false; // Only manageable from DB console
+    }
+
+    match /products/{productId} {
+      allow read: if true; // Products are public
+      
+      allow create: if isAdmin() && isValidId(productId) && isValidProduct(incoming()) && incoming().createdAt == request.time;
+      
+      allow update: if isAdmin() && isValidId(productId) && isValidProduct(incoming()) && incoming().createdAt == existing().createdAt;
+      
+      allow delete: if isAdmin() && isValidId(productId);
+    }
+  }
+}

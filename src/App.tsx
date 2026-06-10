@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Compass, Sparkles, AlertCircle, ShoppingBag, ShieldCheck, HelpCircle } from "lucide-react";
 import { Product, CartItem, Order, FiltersState, ProductCategory, ProductSize, OrderStatus } from "./types";
 import { PRODUCTS, INITIAL_ORDERS } from "./data";
+import { auth, db } from "./firebase";
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import Navbar from "./components/Navbar";
 import HeroSlider from "./components/HeroSlider";
 import ProductCard from "./components/ProductCard";
@@ -10,6 +12,8 @@ import FiltersSidebar from "./components/FiltersSidebar";
 import CartDrawer from "./components/CartDrawer";
 import OrderTracker from "./components/OrderTracker";
 import Logo from "./components/Logo";
+
+import AdminPanel from "./components/AdminPanel";
 
 const DEFAULT_FILTERS: FiltersState = {
   category: "All",
@@ -21,7 +25,7 @@ const DEFAULT_FILTERS: FiltersState = {
 };
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"shop" | "tracking">("shop");
+  const [activeTab, setActiveTab] = useState<"shop" | "tracking" | "admin">("shop");
   const [searchValue, setSearchValue] = useState("");
   const [filters, setFilters] = useState<FiltersState>(DEFAULT_FILTERS);
   
@@ -48,6 +52,38 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchedOrderCode, setSearchedOrderCode] = useState<string | null>(null);
+  const [firebaseProducts, setFirebaseProducts] = useState<Product[]>([]);
+
+  // Fetch products from Firestore
+  useEffect(() => {
+    const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+    const unsub = onSnapshot(q, (snapshot) => {
+      const prods: Product[] = [];
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        prods.push({
+          id: data.id,
+          name: data.name,
+          price: data.price,
+          description: data.description,
+          category: data.category as ProductCategory,
+          sizeOptions: data.sizeOptions,
+          colorOptions: data.colorOptions,
+          mainImage: data.mainImage,
+          galleryImages: data.galleryImages || [],
+          rating: data.rating,
+          reviewsCount: data.reviewsCount,
+          isNew: data.isNew,
+          isFeatured: data.isFeatured,
+          specifications: data.specifications || []
+        });
+      });
+      setFirebaseProducts(prods);
+    }, (error) => {
+      console.error("Firestore products error: ", error);
+    });
+    return () => unsub();
+  }, []);
 
   // Sync state variations in local storage
   useEffect(() => {
@@ -261,7 +297,9 @@ export default function App() {
   };
 
   // Filter application algorithms
-  const filteredProducts = PRODUCTS.filter((prod) => {
+  const allMergedProducts = [...firebaseProducts, ...PRODUCTS];
+
+  const filteredProducts = allMergedProducts.filter((prod) => {
     // 1. Search Query
     if (searchValue) {
       const q = searchValue.toLowerCase();
@@ -353,7 +391,7 @@ export default function App() {
                   {/* Results counts indicator */}
                   <div className="flex justify-between items-center border-b-2 border-black pb-3">
                     <span className="text-xs font-black text-black uppercase tracking-widest">
-                      MOSTRANDO {filteredProducts.length} DE {PRODUCTS.length} PRENDAS
+                      MOSTRANDO {filteredProducts.length} DE {allMergedProducts.length} PRENDAS
                     </span>
                     {searchValue && (
                       <span className="text-xs text-black font-black uppercase tracking-wider">
@@ -429,7 +467,7 @@ export default function App() {
             </div>
 
           </div>
-        ) : (
+        ) : activeTab === "tracking" ? (
           /* Tracker Component */
           <div className="bg-neutral-50 min-h-[30rem] flex items-center">
             <OrderTracker
@@ -438,6 +476,11 @@ export default function App() {
               onResetOrderSimulation={handleResetOrderSimulation}
               searchedOrderCode={searchedOrderCode}
             />
+          </div>
+        ) : (
+          /* Admin Panel */
+          <div className="bg-white min-h-[30rem]">
+            <AdminPanel />
           </div>
         )}
       </main>
@@ -473,6 +516,7 @@ export default function App() {
                 <button onClick={() => { setActiveTab("tracking"); setSearchedOrderCode(null); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer">Seguimiento de Envío</button>
                 <span className="text-left text-neutral-400 cursor-default text-[9px] font-bold">Atención Personalizada de Lunes a Sábado</span>
                 <span className="text-left font-black text-white hover:text-amber-400 text-[10px] break-all">HELLO@CACAOACTIVEWEAR.COM</span>
+                <button onClick={() => { setActiveTab("admin"); setSearchedOrderCode(null); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer mt-4">Acceso Administrativo</button>
               </div>
             </div>
 
