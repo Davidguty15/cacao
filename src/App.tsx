@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { Compass, Sparkles, AlertCircle, ShoppingBag, ShieldCheck, HelpCircle } from "lucide-react";
 import { Product, CartItem, Order, FiltersState, ProductCategory, ProductSize, OrderStatus } from "./types";
 import { PRODUCTS, INITIAL_ORDERS } from "./data";
@@ -25,13 +26,9 @@ const DEFAULT_FILTERS: FiltersState = {
 };
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"shop" | "tracking" | "admin">(() => {
-    return (sessionStorage.getItem("activeTab") as "shop" | "tracking" | "admin") || "shop";
-  });
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  useEffect(() => {
-    sessionStorage.setItem("activeTab", activeTab);
-  }, [activeTab]);
   const [searchValue, setSearchValue] = useState("");
   const [filters, setFilters] = useState<FiltersState>(DEFAULT_FILTERS);
   
@@ -229,7 +226,7 @@ export default function App() {
     setIsCartOpen(false);
 
     // Redirect user to tracking panel with newly generated code
-    setActiveTab("tracking");
+    navigate("/tracking");
     setSearchedOrderCode(orderId);
   };
 
@@ -362,133 +359,132 @@ export default function App() {
       <Navbar
         cartCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
         onOpenCart={() => setIsCartOpen(true)}
-        activeTab={activeTab}
-        setActiveTab={(tab) => {
-          setActiveTab(tab);
-          setSearchedOrderCode(null);
-        }}
         searchValue={searchValue}
         onSearchChange={setSearchValue}
       />
 
       <main className="flex-grow">
-        {activeTab === "shop" ? (
-          <div>
-            {/* Smooth auto-sliding banner */}
-            <HeroSlider onSelectCategory={handleSelectSliderCategory} />
+        <Routes>
+          <Route path="/" element={
+            <div>
+              {/* Smooth auto-sliding banner */}
+              <HeroSlider onSelectCategory={handleSelectSliderCategory} />
 
-            {/* Core Boutique grid area */}
-            <div id="catalogo-ropa" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 scroll-mt-20">
-              
-              <div className="flex flex-col lg:flex-row gap-8">
+              {/* Core Boutique grid area */}
+              <div id="catalogo-ropa" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 scroll-mt-20">
                 
-                {/* Advanced facet filters on the left */}
-                <aside className="w-full lg:w-1/4 shrink-0">
-                  <FiltersSidebar
-                    filters={filters}
-                    onFiltersChange={setFilters}
-                    onResetFilters={() => setFilters(DEFAULT_FILTERS)}
-                  />
-                </aside>
-
-                {/* Garments items catalogue list on the right */}
-                <section className="flex-grow flex flex-col gap-6">
+                <div className="flex flex-col lg:flex-row gap-8">
                   
-                  {/* Results counts indicator */}
-                  <div className="flex justify-between items-center border-b-2 border-black pb-3">
-                    <span className="text-xs font-black text-black uppercase tracking-widest">
-                      MOSTRANDO {filteredProducts.length} DE {allMergedProducts.length} PRENDAS
-                    </span>
-                    {searchValue && (
-                      <span className="text-xs text-black font-black uppercase tracking-wider">
-                        FILTRANDO: "{searchValue.toUpperCase()}"
+                  {/* Advanced facet filters on the left */}
+                  <aside className="w-full lg:w-1/4 shrink-0">
+                    <FiltersSidebar
+                      filters={filters}
+                      onFiltersChange={setFilters}
+                      onResetFilters={() => setFilters(DEFAULT_FILTERS)}
+                    />
+                  </aside>
+
+                  {/* Garments items catalogue list on the right */}
+                  <section className="flex-grow flex flex-col gap-6">
+                    
+                    {/* Results counts indicator */}
+                    <div className="flex justify-between items-center border-b-2 border-black pb-3">
+                      <span className="text-xs font-black text-black uppercase tracking-widest">
+                        MOSTRANDO {filteredProducts.length} DE {allMergedProducts.length} PRENDAS
                       </span>
+                      {searchValue && (
+                        <span className="text-xs text-black font-black uppercase tracking-wider">
+                          FILTRANDO: "{searchValue.toUpperCase()}"
+                        </span>
+                      )}
+                    </div>
+
+                    {filteredProducts.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredProducts.map((prod) => (
+                          <ProductCard
+                            key={prod.id}
+                            product={prod}
+                            onOpenDetails={setSelectedProduct}
+                            onQuickAdd={handleQuickAdd}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      /* Empty state search mismatch */
+                      <div className="text-center py-20 bg-neutral-50 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                        <Compass className="w-12 h-12 text-black mx-auto stroke-[3]" />
+                        <h3 className="text-sm font-black text-black uppercase mt-4 tracking-widest">SIN COINCIDENCIAS CON LA BÚSQUEDA</h3>
+                        <p className="mt-1.5 text-xs text-neutral-400 max-w-xs mx-auto font-bold uppercase tracking-wider">
+                          Prueba desmarcando filtros de talla, color o ampliando el rango de valor.
+                        </p>
+                        <button
+                          onClick={() => {
+                            setFilters(DEFAULT_FILTERS);
+                            setSearchValue("");
+                          }}
+                          className="mt-6 px-6 py-3.5 bg-black border-2 border-black text-white text-xs font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all"
+                        >
+                          RESETEAR TODO
+                        </button>
+                      </div>
                     )}
-                  </div>
 
-                  {filteredProducts.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {filteredProducts.map((prod) => (
-                        <ProductCard
-                          key={prod.id}
-                          product={prod}
-                          onOpenDetails={setSelectedProduct}
-                          onQuickAdd={handleQuickAdd}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    /* Empty state search mismatch */
-                    <div className="text-center py-20 bg-neutral-50 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                      <Compass className="w-12 h-12 text-black mx-auto stroke-[3]" />
-                      <h3 className="text-sm font-black text-black uppercase mt-4 tracking-widest">SIN COINCIDENCIAS CON LA BÚSQUEDA</h3>
-                      <p className="mt-1.5 text-xs text-neutral-400 max-w-xs mx-auto font-bold uppercase tracking-wider">
-                        Prueba desmarcando filtros de talla, color o ampliando el rango de valor.
-                      </p>
-                      <button
-                        onClick={() => {
-                          setFilters(DEFAULT_FILTERS);
-                          setSearchValue("");
-                        }}
-                        className="mt-6 px-6 py-3.5 bg-black border-2 border-black text-white text-xs font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all"
-                      >
-                        RESETEAR TODO
-                      </button>
-                    </div>
-                  )}
+                  </section>
 
-                </section>
+                </div>
 
               </div>
 
-            </div>
-
-            {/* Premium Brand values banner */}
-            <div className="bg-neutral-50 border-t-2 border-b-2 border-black py-16 text-center select-none">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-                  <div className="flex flex-col items-center">
-                    <span className="text-2xl font-black text-black mb-3 font-mono bg-neutral-200 border-2 border-black px-3.5 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-[15px]">01</span>
-                    <h4 className="text-xs font-black uppercase tracking-widest text-black mb-1.5">ALTA INGENIERÍA TEXTIL</h4>
-                    <p className="text-[11px] text-neutral-600 leading-relaxed font-bold uppercase tracking-wide max-w-xs">
-                      Fibras hidrofílicas duales microperforadas que absorben el sudor al instante para mantener tu temperatura óptima siempre.
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <span className="text-2xl font-black text-black mb-3 font-mono bg-neutral-200 border-2 border-black px-3.5 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-[15px]">02</span>
-                    <h4 className="text-xs font-black uppercase tracking-widest text-black mb-1.5">OPACIDAD SQUAT-PROOF 100%</h4>
-                    <p className="text-[11px] text-neutral-600 leading-relaxed font-bold uppercase tracking-wide max-w-xs">
-                      Tejidos con hilados de triple rotación entrelazada garantizando estiramiento multidimensional sin transparencias.
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <span className="text-2xl font-black text-black mb-3 font-mono bg-neutral-200 border-2 border-black px-3.5 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-[15px]">03</span>
-                    <h4 className="text-xs font-black uppercase tracking-widest text-black mb-1.5">EMBALAJE CONCIENTE ECO SOBRIO</h4>
-                    <p className="text-[11px] text-neutral-600 leading-relaxed font-bold uppercase tracking-wide max-w-xs">
-                      Entregamos de forma express tus prendas en cajas minimalistas prensadas de cartón orgánico 100% reciclable libre de plástico.
-                    </p>
+              {/* Premium Brand values banner */}
+              <div className="bg-neutral-50 border-t-2 border-b-2 border-black py-16 text-center select-none">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                    <div className="flex flex-col items-center">
+                      <span className="text-2xl font-black text-black mb-3 font-mono bg-neutral-200 border-2 border-black px-3.5 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-[15px]">01</span>
+                      <h4 className="text-xs font-black uppercase tracking-widest text-black mb-1.5">ALTA INGENIERÍA TEXTIL</h4>
+                      <p className="text-[11px] text-neutral-600 leading-relaxed font-bold uppercase tracking-wide max-w-xs">
+                        Fibras hidrofílicas duales microperforadas que absorben el sudor al instante para mantener tu temperatura óptima siempre.
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <span className="text-2xl font-black text-black mb-3 font-mono bg-neutral-200 border-2 border-black px-3.5 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-[15px]">02</span>
+                      <h4 className="text-xs font-black uppercase tracking-widest text-black mb-1.5">OPACIDAD SQUAT-PROOF 100%</h4>
+                      <p className="text-[11px] text-neutral-600 leading-relaxed font-bold uppercase tracking-wide max-w-xs">
+                        Tejidos con hilados de triple rotación entrelazada garantizando estiramiento multidimensional sin transparencias.
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <span className="text-2xl font-black text-black mb-3 font-mono bg-neutral-200 border-2 border-black px-3.5 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-[15px]">03</span>
+                      <h4 className="text-xs font-black uppercase tracking-widest text-black mb-1.5">EMBALAJE CONCIENTE ECO SOBRIO</h4>
+                      <p className="text-[11px] text-neutral-600 leading-relaxed font-bold uppercase tracking-wide max-w-xs">
+                        Entregamos de forma express tus prendas en cajas minimalistas prensadas de cartón orgánico 100% reciclable libre de plástico.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-          </div>
-        ) : activeTab === "tracking" ? (
-          /* Tracker Component */
-          <div className="bg-neutral-50 min-h-[30rem] flex items-center">
-            <OrderTracker
-              orders={orders}
-              onSimulateStageUpdate={handleSimulateStageUpdate}
-              onResetOrderSimulation={handleResetOrderSimulation}
-              searchedOrderCode={searchedOrderCode}
-            />
-          </div>
-        ) : (
-          /* Admin Panel */
-          <div className="bg-white min-h-[30rem]">
-            <AdminPanel />
-          </div>
-        )}
+            </div>
+          } />
+          
+          <Route path="/tracking" element={
+            <div className="bg-neutral-50 min-h-[30rem] flex items-center">
+              <OrderTracker
+                orders={orders}
+                onSimulateStageUpdate={handleSimulateStageUpdate}
+                onResetOrderSimulation={handleResetOrderSimulation}
+                searchedOrderCode={searchedOrderCode}
+              />
+            </div>
+          } />
+
+          <Route path="/panel" element={
+            <div className="bg-white min-h-[30rem]">
+              <AdminPanel />
+            </div>
+          } />
+        </Routes>
       </main>
 
       {/* Elegant, minimalist dark boutique footer */}
@@ -508,10 +504,10 @@ export default function App() {
             <div>
               <h5 className="text-[10px] font-black tracking-widest text-neutral-400 uppercase mb-4">MAPEO DE ESTILOS</h5>
               <div className="flex flex-col gap-2.5 text-xs text-neutral-300 font-black uppercase tracking-wider">
-                <button onClick={() => handleSelectSliderCategory("Shorts")} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer">Shorts Técnicos</button>
-                <button onClick={() => handleSelectSliderCategory("Camisas")} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer">Playeras y Camisetas</button>
-                <button onClick={() => handleSelectSliderCategory("Leggins")} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer">Leggings de Compresión</button>
-                <button onClick={() => handleSelectSliderCategory("Chaquetas")} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer">Cortavientos y Chaquetas</button>
+                <button onClick={() => { navigate('/'); handleSelectSliderCategory("Shorts"); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer">Shorts Técnicos</button>
+                <button onClick={() => { navigate('/'); handleSelectSliderCategory("Camisas"); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer">Playeras y Camisetas</button>
+                <button onClick={() => { navigate('/'); handleSelectSliderCategory("Leggins"); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer">Leggings de Compresión</button>
+                <button onClick={() => { navigate('/'); handleSelectSliderCategory("Chaquetas"); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer">Cortavientos y Chaquetas</button>
               </div>
             </div>
 
@@ -519,10 +515,10 @@ export default function App() {
             <div>
               <h5 className="text-[10px] font-black tracking-widest text-neutral-400 uppercase mb-4">SOPORTE EXPRESS</h5>
               <div className="flex flex-col gap-2.5 text-xs text-neutral-300 font-black uppercase tracking-wider">
-                <button onClick={() => { setActiveTab("tracking"); setSearchedOrderCode(null); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer">Seguimiento de Envío</button>
+                <button onClick={() => { navigate("/tracking"); setSearchedOrderCode(null); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer">Seguimiento de Envío</button>
                 <span className="text-left text-neutral-400 cursor-default text-[9px] font-bold">Atención Personalizada de Lunes a Sábado</span>
                 <span className="text-left font-black text-white hover:text-amber-400 text-[10px] break-all">HELLO@CACAOACTIVEWEAR.COM</span>
-                <button onClick={() => { setActiveTab("admin"); setSearchedOrderCode(null); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer mt-4">Acceso Administrativo</button>
+                <button onClick={() => { navigate("/panel"); setSearchedOrderCode(null); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer mt-4">Acceso Administrativo</button>
               </div>
             </div>
 

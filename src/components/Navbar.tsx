@@ -1,12 +1,11 @@
 import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { ShoppingBag, Search, Compass, Truck, ShieldCheck, Heart } from "lucide-react";
 import Logo from "./Logo";
 
 interface NavbarProps {
   cartCount: number;
   onOpenCart: () => void;
-  activeTab: "shop" | "tracking";
-  setActiveTab: (tab: "shop" | "tracking") => void;
   onSearchChange: (value: string) => void;
   searchValue: string;
 }
@@ -14,12 +13,13 @@ interface NavbarProps {
 export default function Navbar({
   cartCount,
   onOpenCart,
-  activeTab,
-  setActiveTab,
   onSearchChange,
   searchValue,
 }: NavbarProps) {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const location = useLocation();
+  const isShop = location.pathname === "/";
+  const isTracking = location.pathname === "/tracking";
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white border-b-2 border-black transition-all duration-300">
@@ -28,37 +28,37 @@ export default function Navbar({
           
           {/* Logo Brand area */}
           <div className="flex items-center gap-8">
-            <button
-              onClick={() => setActiveTab("shop")}
+            <Link
+              to="/"
               className="flex items-center focus:outline-none group active:scale-95 transition-transform"
               aria-label="Cacao Home"
             >
               <Logo className="h-24 text-black group-hover:scale-102 transition-transform duration-300" />
-            </button>
+            </Link>
 
             {/* Main Navigation tabs */}
             <nav className="hidden md:flex items-center space-x-6">
-              <button
-                onClick={() => setActiveTab("shop")}
+              <Link
+                to="/"
                 className={`text-xs font-black tracking-widest transition-colors duration-200 uppercase ${
-                  activeTab === "shop"
+                  isShop
                     ? "text-black border-b-2 border-black pb-1 pt-1"
                     : "text-neutral-400 hover:text-black hover:border-b-2 hover:border-neutral-200 pb-1 pt-1"
                 }`}
               >
                 Colección
-              </button>
-              <button
-                onClick={() => setActiveTab("tracking")}
+              </Link>
+              <Link
+                to="/tracking"
                 className={`text-xs font-black tracking-widest transition-colors duration-200 uppercase flex items-center gap-1.5 ${
-                  activeTab === "tracking"
+                  isTracking
                     ? "text-black border-b-2 border-black pb-1 pt-1"
                     : "text-neutral-400 hover:text-black hover:border-b-2 hover:border-neutral-200 pb-1 pt-1"
                 }`}
               >
                 <Truck className="w-4 h-4 text-black stroke-[2.5]" />
                 Seguir Pedido
-              </button>
+              </Link>
             </nav>
           </div>
 
@@ -66,7 +66,7 @@ export default function Navbar({
           <div className="flex items-center gap-4 sm:gap-6">
             
             {/* Search inputs */}
-            {activeTab === "shop" && (
+            {isShop && (
               <div
                 className={`relative hidden sm:flex items-center bg-neutral-50 px-3.5 py-1.5 border-2 transition-all duration-300 ${
                   isSearchFocused
@@ -89,24 +89,24 @@ export default function Navbar({
 
             {/* Mobile Tab shortcuts */}
             <div className="flex md:hidden items-center gap-3">
-              <button
-                onClick={() => setActiveTab("shop")}
+              <Link
+                to="/"
                 className={`p-1.5 border ${
-                  activeTab === "shop" ? "bg-black text-white border-black" : "text-neutral-500 border-neutral-200"
+                  isShop ? "bg-black text-white border-black" : "text-neutral-500 border-neutral-200"
                 }`}
                 title="Tienda"
               >
                 <Compass className="w-5 h-5 stroke-[2.5]" />
-              </button>
-              <button
-                onClick={() => setActiveTab("tracking")}
+              </Link>
+              <Link
+                to="/tracking"
                 className={`p-1.5 border relative ${
-                  activeTab === "tracking" ? "bg-black text-white border-black" : "text-neutral-500 border-neutral-200"
+                  isTracking ? "bg-black text-white border-black" : "text-neutral-500 border-neutral-200"
                 }`}
                 title="Seguimiento"
               >
                 <Truck className="w-5 h-5 stroke-[2.5]" />
-              </button>
+              </Link>
             </div>
 
             {/* Shopping cart button */}
