@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { auth, db, storage, handleFirestoreError, OperationType } from "../firebase";
-import { signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut, User } from "firebase/auth";
+import { signInWithPopup, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut, User } from "firebase/auth";
 import { collection, doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { Product, ProductCategory, ProductSize } from "../types";
@@ -25,6 +25,12 @@ export default function AdminPanel() {
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
+    // Verificar si venimos de un redirect de Google
+    getRedirectResult(auth).catch(err => {
+      console.error("Error en redirect:", err);
+      alert("Hubo un error al regresar del inicio de sesión: " + err.message);
+    });
+
     const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u) {
@@ -53,15 +59,13 @@ export default function AdminPanel() {
 
   const handleLogin = async () => {
     try {
-      setLoading(true);
+      // No seteamos loading aquí para evitar que React rompa el contexto del click y el navegador bloquee el popup
       const provider = new GoogleAuthProvider();
-      // Ensure we prompt for account selection just in case
       provider.setCustomParameters({ prompt: 'select_account' });
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
     } catch (error: any) {
       console.error(error);
-      alert("Error al iniciar sesión: " + error.message);
-      setLoading(false);
+      alert("Error al iniciar sesión: " + error.message + "\n\nAsegúrate de permitir las ventanas emergentes (pop-ups) en tu navegador.");
     }
   };
 
