@@ -21,7 +21,7 @@ service cloud.firestore {
       return resource.data; 
     }
     function isSignedIn() { 
-      return request.auth != null && request.auth.token.email_verified == true; 
+      return request.auth != null; 
     }
     function isAdmin() { 
       return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); 
