@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { auth, db, storage, handleFirestoreError, OperationType } from "../firebase";
-import { signInWithPopup, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut, User } from "firebase/auth";
+import { signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut, User } from "firebase/auth";
 import { collection, doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { Product, ProductCategory, ProductSize } from "../types";
@@ -61,17 +61,16 @@ export default function AdminPanel() {
 
   const handleLogin = () => {
     setAuthError("");
+    setLoading(true); // Mostrar estado de carga mientras redirige
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     
-    // Ejecución 100% síncrona sin async/await para prevenir que navegadores estrictos bloqueen el popup
-    signInWithPopup(auth, provider).catch((error: any) => {
-      console.error("Auth popup error:", error);
-      if (error.code === 'auth/popup-blocked') {
-        setAuthError("Tu navegador bloqueó la ventana emergente de Google. Por favor, haz clic en el ícono de advertencia (arriba a la derecha en tu barra de direcciones ↗️), selecciona 'Permitir siempre pop-ups' y vuelve a intentarlo.");
-      } else {
-        setAuthError("Error al iniciar sesión: " + error.message);
-      }
+    // Usamos Redirect en vez de Popup. Ahora que tenemos React Router (URL /panel), 
+    // regresaremos exactamente a esta vista tras el login de Google, solucionando el problema inicial.
+    signInWithRedirect(auth, provider).catch((error: any) => {
+      console.error("Auth redirect error:", error);
+      setAuthError("Error de redirección: " + error.message);
+      setLoading(false);
     });
   };
 
