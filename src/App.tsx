@@ -25,7 +25,13 @@ const DEFAULT_FILTERS: FiltersState = {
 };
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"shop" | "tracking" | "admin">("shop");
+  const [activeTab, setActiveTab] = useState<"shop" | "tracking" | "admin">(() => {
+    return (sessionStorage.getItem("activeTab") as "shop" | "tracking" | "admin") || "shop";
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem("activeTab", activeTab);
+  }, [activeTab]);
   const [searchValue, setSearchValue] = useState("");
   const [filters, setFilters] = useState<FiltersState>(DEFAULT_FILTERS);
   
