@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { auth, db, storage, handleFirestoreError, OperationType } from "../firebase";
-import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, User } from "firebase/auth";
+import { signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut, User } from "firebase/auth";
 import { collection, doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { Product, ProductCategory, ProductSize } from "../types";
@@ -53,13 +53,15 @@ export default function AdminPanel() {
 
   const handleLogin = async () => {
     try {
+      setLoading(true);
       const provider = new GoogleAuthProvider();
       // Ensure we prompt for account selection just in case
       provider.setCustomParameters({ prompt: 'select_account' });
-      await signInWithPopup(auth, provider);
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
       console.error(error);
       alert("Error al iniciar sesión: " + error.message);
+      setLoading(false);
     }
   };
 
