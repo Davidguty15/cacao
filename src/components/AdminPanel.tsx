@@ -56,8 +56,9 @@ export default function AdminPanel() {
       setLoading(true);
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      alert("Error al iniciar sesión: " + error.message + "\n\nSi estás en Vercel, asegúrate de añadir 'cacaocol.vercel.app' a los dominios autorizados en Firebase Authentication.");
       setLoading(false);
     }
   };
