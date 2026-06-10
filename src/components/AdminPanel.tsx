@@ -24,11 +24,13 @@ export default function AdminPanel() {
   const [uploadMsg, setUploadMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
+  const [authError, setAuthError] = useState("");
+
   useEffect(() => {
     // Verificar si venimos de un redirect de Google
     getRedirectResult(auth).catch(err => {
       console.error("Error en redirect:", err);
-      alert("Hubo un error al regresar del inicio de sesión: " + err.message);
+      setAuthError("Hubo un error al regresar del inicio de sesión: " + err.message);
     });
 
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -57,16 +59,20 @@ export default function AdminPanel() {
     return () => unsub();
   }, []);
 
-  const handleLogin = async () => {
-    try {
-      // No seteamos loading aquí para evitar que React rompa el contexto del click y el navegador bloquee el popup
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: 'select_account' });
-      await signInWithPopup(auth, provider);
-    } catch (error: any) {
-      console.error(error);
-      alert("Error al iniciar sesión: " + error.message + "\n\nAsegúrate de permitir las ventanas emergentes (pop-ups) en tu navegador.");
-    }
+  const handleLogin = () => {
+    setAuthError("");
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    
+    // Ejecución 100% síncrona sin async/await para prevenir que navegadores estrictos bloqueen el popup
+    signInWithPopup(auth, provider).catch((error: any) => {
+      console.error("Auth popup error:", error);
+      if (error.code === 'auth/popup-blocked') {
+        setAuthError("Tu navegador bloqueó la ventana emergente de Google. Por favor, haz clic en el ícono de advertencia (arriba a la derecha en tu barra de direcciones ↗️), selecciona 'Permitir siempre pop-ups' y vuelve a intentarlo.");
+      } else {
+        setAuthError("Error al iniciar sesión: " + error.message);
+      }
+    });
   };
 
   const handleLogout = async () => {
@@ -156,6 +162,14 @@ export default function AdminPanel() {
         <p className="text-xs text-neutral-500 uppercase tracking-widest mb-8 font-bold">
           Ingresa con tu cuenta de Google designada como administrador para gestionar catálogo.
         </p>
+        
+        {authError && (
+          <div className="mb-8 bg-red-100 border-2 border-red-500 text-red-700 p-4 text-xs font-black text-left flex items-start gap-3 uppercase">
+            <AlertCircle className="w-5 h-5 shrink-0" />
+            <span>{authError}</span>
+          </div>
+        )}
+
         <button
           onClick={handleLogin}
           className="bg-black text-white px-8 py-3 font-black text-xs uppercase tracking-widest hover:bg-neutral-800 transition-colors"
