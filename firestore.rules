@@ -58,11 +58,11 @@ service cloud.firestore {
     match /products/{productId} {
       allow read: if true; // Products are public
       
-      allow create: if isAdmin() && isValidId(productId) && isValidProduct(incoming()) && incoming().createdAt == request.time;
+      allow create: if isAdmin();
       
-      allow update: if isAdmin() && isValidId(productId) && isValidProduct(incoming()) && incoming().createdAt == existing().createdAt;
+      allow update: if isAdmin();
       
-      allow delete: if isAdmin() && isValidId(productId);
+      allow delete: if isAdmin();
     }
   }
 }

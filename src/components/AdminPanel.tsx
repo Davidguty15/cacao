@@ -121,8 +121,8 @@ export default function AdminPanel() {
           const img = new Image();
           img.onload = () => {
             const canvas = document.createElement("canvas");
-            const MAX_WIDTH = 800;
-            const MAX_HEIGHT = 800;
+            const MAX_WIDTH = 600;
+            const MAX_HEIGHT = 600;
             let width = img.width;
             let height = img.height;
 
@@ -142,7 +142,7 @@ export default function AdminPanel() {
             const ctx = canvas.getContext("2d");
             if (!ctx) return reject("Canvas no soportado");
             ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL("image/webp", 0.7)); // Compress to WebP
+            resolve(canvas.toDataURL("image/webp", 0.6)); // Compress more
           };
           img.onerror = reject;
           img.src = e.target?.result as string;
