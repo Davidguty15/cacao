@@ -177,7 +177,7 @@ export default function CartDrawer({
                         <div className="flex border-2 border-black h-8 w-24 shrink-0 bg-white">
                           <button
                             onClick={() => onUpdateQty(item.id, item.quantity - 1)}
-                            className="w-7 text-xs font-black text-black hover:bg-neutral-100"
+                            className="w-7 text-xs font-black text-black hover:bg-neutral-100 disabled:opacity-50"
                           >
                             -
                           </button>
@@ -185,8 +185,9 @@ export default function CartDrawer({
                             {item.quantity}
                           </span>
                           <button
+                            disabled={item.product.stock && item.product.stock[`${item.selectedSize}-${item.selectedColor}`] !== undefined && item.quantity >= item.product.stock[`${item.selectedSize}-${item.selectedColor}`]}
                             onClick={() => onUpdateQty(item.id, item.quantity + 1)}
-                            className="w-7 text-xs font-black text-black hover:bg-neutral-100"
+                            className="w-7 text-xs font-black text-black hover:bg-neutral-100 disabled:opacity-50"
                           >
                             +
                           </button>

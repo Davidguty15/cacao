@@ -110,11 +110,14 @@ export default function App() {
   // Cart operations
   const handleAddToCart = (product: Product, size: ProductSize, color: string, quantity: number) => {
     const itemId = `${product.id}-${size}-${color}`;
+    const stockKey = `${size}-${color}`;
+    const stockQty = (product.stock && product.stock[stockKey] !== undefined) ? product.stock[stockKey] : Infinity;
+
     setCartItems((prevItems) => {
       const existingIndex = prevItems.findIndex((item) => item.id === itemId);
       if (existingIndex > -1) {
         const updated = [...prevItems];
-        updated[existingIndex].quantity += quantity;
+        updated[existingIndex].quantity = Math.min(updated[existingIndex].quantity + quantity, stockQty);
         return updated;
       } else {
         return [
@@ -122,7 +125,7 @@ export default function App() {
           {
             id: itemId,
             product,
-            quantity,
+            quantity: Math.min(quantity, stockQty),
             selectedSize: size,
             selectedColor: color,
           },
@@ -132,9 +135,24 @@ export default function App() {
   };
 
   const handleQuickAdd = (product: Product) => {
-    // Select the first available size and color
-    const defaultSize = product.sizeOptions[0];
-    const defaultColor = product.colorOptions[0];
+    // Select the first available size and color that has stock
+    let defaultSize = product.sizeOptions[0];
+    let defaultColor = product.colorOptions[0];
+    
+    // Find first comb with stock
+    if (product.stock && Object.keys(product.stock).length > 0) {
+      loop:
+      for (const sz of product.sizeOptions) {
+        for (const col of product.colorOptions) {
+           if (product.stock[`${sz}-${col}`] > 0) {
+             defaultSize = sz;
+             defaultColor = col;
+             break loop;
+           }
+        }
+      }
+    }
+    
     handleAddToCart(product, defaultSize, defaultColor, 1);
     setIsCartOpen(true);
   };
@@ -145,7 +163,13 @@ export default function App() {
       return;
     }
     setCartItems((prevItems) =>
-      prevItems.map((item) => (item.id === itemId ? { ...item, quantity: qty } : item))
+      prevItems.map((item) => {
+        if (item.id === itemId) {
+           const stockQty = (item.product.stock && item.product.stock[`${item.selectedSize}-${item.selectedColor}`] !== undefined) ? item.product.stock[`${item.selectedSize}-${item.selectedColor}`] : Infinity;
+           return { ...item, quantity: Math.min(qty, stockQty) };
+        }
+        return item;
+      })
     );
   };
 
@@ -154,13 +178,35 @@ export default function App() {
   };
 
   // Creating full trackable order upon checkout checkout
-  const handlePlaceOrder = (
+  const handlePlaceOrder = async (
     customerInfo: { name: string; email: string; address: string; city: string },
     discountVal: number
   ) => {
     const codeSuffix = Math.floor(1000 + Math.random() * 9000);
     const orderId = `CACAO-${codeSuffix}`;
     const trackerCode = `CACAO-TRK-${Math.random().toString(36).substring(2, 6)}`;
+
+    // Decrement stock in Firebase
+    for (const item of cartItems) {
+      if (item.product.id && !item.product.id.startsWith("prod-")) { // Ensure it's a Firebase product id, but we can try to update anyway
+        try {
+          const { doc, getDoc, updateDoc } = await import("firebase/firestore");
+          const productRef = doc(db, "products", item.product.id);
+          const snap = await getDoc(productRef);
+          if (snap.exists()) {
+             const prodData = snap.data();
+             const currentStock = prodData.stock || {};
+             const key = `${item.selectedSize}-${item.selectedColor}`;
+             if (currentStock[key] !== undefined) {
+               currentStock[key] = Math.max(0, currentStock[key] - item.quantity);
+               await updateDoc(productRef, { stock: currentStock });
+             }
+          }
+        } catch (error) {
+          console.error("Error updating stock", error);
+        }
+      }
+    }
 
     const subtotal = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
     const rawDiscount = Math.round(subtotal * (discountVal / 100));

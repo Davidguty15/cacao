@@ -20,19 +20,27 @@ export default function ProductCard({ product, onOpenDetails, onQuickAdd }: Prod
     }).format(price);
   };
 
+  const hasStockTracking = product.stock && Object.keys(product.stock).length > 0;
+  const isCompletelyOutOfStock = hasStockTracking && Object.values(product.stock).every((qty) => qty <= 0);
+
   return (
-    <div className="group relative bg-white border-2 border-black flex flex-col justify-between transition-all duration-300 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+    <div className={`group relative bg-white border-2 border-black flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] ${isCompletelyOutOfStock ? 'opacity-70' : ''}`}>
       
       {/* Product Tag Badge corner */}
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5 pointer-events-none">
-        {product.isNew && (
+        {product.isNew && !isCompletelyOutOfStock && (
           <span className="bg-black text-white text-[9px] font-black tracking-widest uppercase px-2.5 py-1 text-center border border-black">
             NUEVO
           </span>
         )}
-        {product.isFeatured && (
+        {product.isFeatured && !isCompletelyOutOfStock && (
           <span className="bg-white text-black border-2 border-black text-[9px] font-black tracking-widest uppercase px-2.5 py-1 text-center">
             DESTACADO
+          </span>
+        )}
+        {isCompletelyOutOfStock && (
+          <span className="bg-red-500 text-white text-[9px] font-black tracking-widest uppercase px-2.5 py-1 text-center border border-black">
+            AGOTADO
           </span>
         )}
       </div>
@@ -42,7 +50,7 @@ export default function ProductCard({ product, onOpenDetails, onQuickAdd }: Prod
         <img
           src={product.mainImage}
           alt={product.name}
-          className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+          className={`h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105 ${isCompletelyOutOfStock ? 'grayscale' : ''}`}
           referrerPolicy="no-referrer"
         />
         
@@ -55,13 +63,15 @@ export default function ProductCard({ product, onOpenDetails, onQuickAdd }: Prod
           >
             <Eye className="w-4 h-4 stroke-[2.5]" />
           </button>
-          <button
-            onClick={() => onQuickAdd(product)}
-            className="p-3 bg-white border-2 border-black hover:bg-black hover:text-white transition-colors duration-200 text-black duration-150"
-            title="Añadir directo"
-          >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
-          </button>
+          {!isCompletelyOutOfStock && (
+            <button
+              onClick={() => onQuickAdd(product)}
+              className="p-3 bg-white border-2 border-black hover:bg-black hover:text-white transition-colors duration-200 text-black duration-150"
+              title="Añadir directo"
+            >
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+            </button>
+          )}
         </div>
 
         {/* Hover size overlay */}

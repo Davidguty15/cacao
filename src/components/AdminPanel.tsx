@@ -30,6 +30,7 @@ export default function AdminPanel() {
   const [colorOptions, setColorOptions] = useState("Negro");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [stock, setStock] = useState<Record<string, number>>({});
 
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState("");
@@ -56,6 +57,7 @@ export default function AdminPanel() {
           category: data.category,
           sizeOptions: data.sizeOptions || [],
           colorOptions: data.colorOptions || [],
+          stock: data.stock || {},
           mainImage: data.mainImage,
           galleryImages: data.galleryImages || [],
           rating: data.rating || 5,
@@ -140,6 +142,7 @@ export default function AdminPanel() {
     setCategory(prod.category);
     setSizeOptions(prod.sizeOptions);
     setColorOptions(prod.colorOptions.join(", "));
+    setStock(prod.stock || {});
     setExistingImage(prod.mainImage || "");
     setExistingGalleryImages(prod.galleryImages || []);
     setImageFile(null);
@@ -166,6 +169,7 @@ export default function AdminPanel() {
     setCategory("Shorts");
     setSizeOptions(["S", "M", "L"]);
     setColorOptions("Negro");
+    setStock({});
     setExistingImage("");
     setExistingGalleryImages([]);
     setImageFile(null);
@@ -275,6 +279,7 @@ export default function AdminPanel() {
           category,
           sizeOptions,
           colorOptions: parsedColors,
+          stock,
           mainImage: fileDataUrl,
           galleryImages: galleryDataUrls
         });
@@ -291,6 +296,7 @@ export default function AdminPanel() {
           category,
           sizeOptions,
           colorOptions: parsedColors,
+          stock,
           mainImage: fileDataUrl,
           galleryImages: galleryDataUrls,
           rating: 5,
@@ -497,13 +503,39 @@ export default function AdminPanel() {
                   key={sz}
                   type="button"
                   onClick={() => toggleSize(sz)}
-                  className={`w-12 h-12 border-2 font-black text-sm uppercase transition-all active:scale-95 ${sizeOptions.includes(sz) ? "bg-black text-white border-black shadow-[3px_3px_0px_0px_rgba(251,191,36,1)]" : "bg-white text-neutral-400 border-neutral-300 hover:border-black hover:text-black"}`}
+                  className={`w-auto min-w-[3rem] px-3 h-12 border-2 font-black text-sm uppercase transition-all active:scale-95 ${sizeOptions.includes(sz) ? "bg-black text-white border-black shadow-[3px_3px_0px_0px_rgba(251,191,36,1)]" : "bg-white text-neutral-400 border-neutral-300 hover:border-black hover:text-black"}`}
                 >
                   {sz}
                 </button>
               ))}
             </div>
           </div>
+
+          {sizeOptions.length > 0 && colorOptions.trim() !== "" && (
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-black mb-3">INVENTARIO (CANTIDADES DISPONIBLES)</label>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {sizeOptions.map(sz => (
+                  colorOptions.split(",").map(c => c.trim()).filter(Boolean).map(color => {
+                    const key = `${sz}-${color}`;
+                    return (
+                      <div key={key} className="bg-neutral-50 border-2 border-black p-3 flex flex-col justify-between">
+                        <label className="block text-[10px] font-black uppercase text-black mb-2 truncate" title={`${sz} - ${color}`}>{sz} - {color}</label>
+                        <input 
+                          type="number" 
+                          min="0"
+                          value={stock[key] === undefined ? "" : stock[key]}
+                          onChange={e => setStock(prev => ({ ...prev, [key]: e.target.value === "" ? 0 : parseInt(e.target.value) || 0 }))}
+                          className="w-full border-2 border-black p-2 text-sm font-bold focus:outline-none focus:border-amber-400 bg-white"
+                          placeholder="Ej. 10"
+                        />
+                      </div>
+                    );
+                  })
+                ))}
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-[10px] font-black uppercase tracking-widest text-black mb-2">ACTIVO VISUAL PRINCIPAL</label>

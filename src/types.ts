@@ -1,6 +1,6 @@
 export type ProductCategory = "Shorts" | "Camisas" | "Leggins" | "Chaquetas";
 
-export type ProductSize = "XS" | "S" | "M" | "L" | "XL" | "XXL";
+export type ProductSize = "XS" | "S" | "M" | "L" | "XL" | "XXL" | "Talla Única";
 
 export interface Product {
   id: string;
@@ -10,6 +10,7 @@ export interface Product {
   category: ProductCategory;
   sizeOptions: ProductSize[];
   colorOptions: string[];
+  stock: Record<string, number>; // key: `${size}-${color}` => quantity
   mainImage: string;
   galleryImages: string[];
   rating: number;

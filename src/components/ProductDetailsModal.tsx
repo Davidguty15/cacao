@@ -25,15 +25,22 @@ export default function ProductDetailsModal({ product, onClose, onAddToCart }: P
     }).format(price);
   };
 
+  const stockKey = `${selectedSize}-${selectedColor}`;
+  const hasStockTracking = product.stock && Object.keys(product.stock).length > 0;
+  const stockQty = hasStockTracking ? (product.stock[stockKey] || 0) : null;
+  const isOutOfStockCurrentCombination = hasStockTracking && stockQty === 0;
+
   const handleDecreaseQty = () => {
     if (quantity > 1) setQuantity(quantity - 1);
   };
 
   const handleIncreaseQty = () => {
+    if (stockQty !== null && quantity >= stockQty) return;
     setQuantity(quantity + 1);
   };
 
   const handleAddSubmit = () => {
+    if (isOutOfStockCurrentCombination) return;
     onAddToCart(product, selectedSize, selectedColor, quantity);
     setAddedMessage(true);
     setTimeout(() => {
@@ -182,19 +189,27 @@ export default function ProductDetailsModal({ product, onClose, onAddToCart }: P
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {product.sizeOptions.map((sz) => (
-                    <button
-                      key={sz}
-                      onClick={() => setSelectedSize(sz)}
-                      className={`h-11 min-w-11 px-3.5 text-xs font-black transition-all border-2 ${
-                        selectedSize === sz
-                          ? "bg-black text-white border-black"
-                          : "bg-white text-black border-neutral-300 hover:border-black"
-                      }`}
-                    >
-                      {sz}
-                    </button>
-                  ))}
+                  {product.sizeOptions.map((sz) => {
+                    const stockKey = `${sz}-${selectedColor}`;
+                    const hasStockTracking = product.stock && Object.keys(product.stock).length > 0;
+                    const stockQty = hasStockTracking ? (product.stock[stockKey] || 0) : null;
+                    const isOutOfStock = hasStockTracking && stockQty === 0;
+
+                    return (
+                      <button
+                        key={sz}
+                        disabled={isOutOfStock}
+                        onClick={() => setSelectedSize(sz)}
+                        className={`h-11 w-auto min-w-[2.75rem] px-3.5 text-xs font-black transition-all border-2 disabled:opacity-30 disabled:cursor-not-allowed ${
+                          selectedSize === sz
+                            ? "bg-black text-white border-black"
+                            : "bg-white text-black border-neutral-300 hover:border-black"
+                        }`}
+                      >
+                        {sz}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -222,7 +237,7 @@ export default function ProductDetailsModal({ product, onClose, onAddToCart }: P
                 <div className="flex h-12 w-32 border-2 border-black">
                   <button
                     onClick={handleDecreaseQty}
-                    className="w-10 bg-white font-black text-sm text-black hover:bg-neutral-100 transition-colors"
+                    className="w-10 bg-white font-black text-sm text-black hover:bg-neutral-100 transition-colors disabled:opacity-50"
                   >
                     -
                   </button>
@@ -231,7 +246,8 @@ export default function ProductDetailsModal({ product, onClose, onAddToCart }: P
                   </span>
                   <button
                     onClick={handleIncreaseQty}
-                    className="w-10 bg-white font-black text-sm text-black hover:bg-neutral-100 transition-colors"
+                    disabled={stockQty !== null && quantity >= stockQty}
+                    className="w-10 bg-white font-black text-sm text-black hover:bg-neutral-100 transition-colors disabled:opacity-50"
                   >
                     +
                   </button>
@@ -240,14 +256,16 @@ export default function ProductDetailsModal({ product, onClose, onAddToCart }: P
                 {/* Primary Add to Cart */}
                 <button
                   onClick={handleAddSubmit}
-                  disabled={addedMessage}
-                  className={`flex-1 h-12 flex items-center justify-center font-black text-xs tracking-widest uppercase transition-all duration-200 border-2 border-black ${
+                  disabled={addedMessage || isOutOfStockCurrentCombination}
+                  className={`flex-1 h-12 flex items-center justify-center font-black text-xs tracking-widest uppercase transition-all duration-200 border-2 border-black disabled:cursor-not-allowed ${
                     addedMessage
                       ? "bg-neutral-100 text-neutral-400 border-neutral-300"
-                      : "bg-black text-white hover:bg-white hover:text-black cursor-pointer"
+                      : isOutOfStockCurrentCombination 
+                        ? "bg-red-50 text-red-500 border-red-200"
+                        : "bg-black text-white hover:bg-white hover:text-black cursor-pointer"
                   }`}
                 >
-                  {addedMessage ? "AGREGADO ✓" : "AGREGAR AL CARRITO"}
+                  {isOutOfStockCurrentCombination ? "AGOTADO" : addedMessage ? "AGREGADO ✓" : "AGREGAR AL CARRITO"}
                 </button>
               </div>
 
