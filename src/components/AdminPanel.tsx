@@ -7,7 +7,7 @@ import {
   User 
 } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { ProductCategory, ProductSize } from "../types";
 import { LogOut, UploadCloud, PlusCircle, CheckCircle, AlertCircle, Mail, Lock, ShieldCheck } from "lucide-react";
 
@@ -116,8 +116,8 @@ export default function AdminPanel() {
       const productId = "product_" + Date.now().toString();
       
       const storageRef = ref(storage, `products/${productId}_main`);
-      const uploadTask = await uploadBytesResumable(storageRef, imageFile);
-      const downloadURL = await getDownloadURL(uploadTask.ref);
+      const snapshot = await uploadBytes(storageRef, imageFile);
+      const downloadURL = await getDownloadURL(snapshot.ref);
 
       setUploadMsg("Estableciendo conexión segura con base de datos...");
       
@@ -152,9 +152,17 @@ export default function AdminPanel() {
       setDescription("");
       setColorOptions("Negro");
       setImageFile(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setErrorMsg("Ocurrió un error al subir el producto.");
+      
+      let mensajeError = "Ocurrió un error al subir el producto.";
+      if (err.message && err.message.includes("unauthorized")) {
+        mensajeError = "No tienes permiso para subir imágenes. Activa Firebase Storage y configura las reglas públicas o para usuarios autenticados en tu consola de Firebase.";
+      } else if (err.message) {
+        mensajeError += " " + err.message;
+      }
+
+      setErrorMsg(mensajeError);
       setUploadMsg("");
     } finally {
       setUploading(false);
@@ -360,6 +368,7 @@ export default function AdminPanel() {
           </div>
         </form>
       </div>
+
     </div>
   );
 }
