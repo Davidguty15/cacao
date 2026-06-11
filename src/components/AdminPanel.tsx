@@ -39,7 +39,7 @@ export default function AdminPanel() {
     const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u) {
-        if (u.email === "david.gutierrez906@asys.edu.co") {
+        if (u.email === "david.gutierrez906@asys.edu.co" || u.email === "david1515.org@gmail.com") {
           setIsAdmin(true);
         } else {
           try {
@@ -227,9 +227,20 @@ export default function AdminPanel() {
         <p className="text-xs text-neutral-500 uppercase tracking-widest font-bold mb-6">
           NIVEL DE SEGURIDAD INSUFICIENTE
         </p>
-        <div className="bg-neutral-100 p-4 border-2 border-black text-left mb-6">
+        <div className="bg-neutral-100 p-4 border-2 border-black text-left mb-6 relative">
           <p className="text-[10px] font-black uppercase tracking-widest mb-1 text-neutral-500">IDENTIFICADOR DE OPERADOR:</p>
-          <p className="text-xs font-mono font-bold text-black break-all">{user.uid}</p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-mono font-bold text-black break-all">{user.uid}</p>
+            <button 
+              onClick={() => {
+                navigator.clipboard.writeText(user.uid);
+                alert("UID copiado al portapapeles");
+              }}
+              className="ml-2 bg-black text-white text-[9px] px-2 py-1 font-black uppercase tracking-widest hover:bg-neutral-800 transition-colors shrink-0"
+            >
+              COPIAR
+            </button>
+          </div>
           <p className="text-[10px] font-black uppercase tracking-widest mt-3 mb-1 text-neutral-500">CORREO VINCULADO:</p>
           <p className="text-xs font-mono font-bold text-black">{user.email}</p>
         </div>
