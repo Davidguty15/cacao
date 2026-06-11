@@ -24,7 +24,7 @@ service cloud.firestore {
       return request.auth != null; 
     }
     function isAdmin() { 
-      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); 
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.token.email)); 
     }
 
     // --------------------------------------------------------------------------------
@@ -49,9 +49,9 @@ service cloud.firestore {
     // --------------------------------------------------------------------------------
     // COLLECTIONS
     // --------------------------------------------------------------------------------
-    match /admins/{adminId} {
+    match /admins/{adminEmail} {
       // Bootstrapped admin logic or manual insert via console
-      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == adminId);
+      allow read: if isAdmin() || (isSignedIn() && request.auth.token.email == adminEmail);
       allow write: if false; // Only manageable from DB console
     }
 
