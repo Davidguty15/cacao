@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import banner1Img from "../assets/images/banner1.png";
-import femaleImg from "../assets/images/cacao_banner_female_1779498677970.png";
-import boutiqueImg from "../assets/images/cacao_banner_boutique_1779498697804.png";
 
 // Beautiful custom banner structures
 const SLIDES = [
   {
     id: 1,
-    image: banner1Img,
+    image: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?q=80&w=1600&auto=format&fit=crop",
     subtitle: "Rendimiento y Precisión",
     title: "DISEÑO QUE SE ADAPTA A TU VELOCIDAD",
     description: "Materiales técnicos microporosos y geometría de compresión para superar tus propios límites con elegancia.",
@@ -18,7 +15,7 @@ const SLIDES = [
   },
   {
     id: 2,
-    image: femaleImg,
+    image: "https://images.unsplash.com/photo-1608228079968-c7681eaef827?q=80&w=1600&auto=format&fit=crop",
     subtitle: "Ingeniería de Tejidos Premium",
     title: "LEGGINGS ESCULPIDOS DE ALTO MOVIMIENTO",
     description: "Soporte absoluto abdominal de doble capa con opacidad squat-proof 100% garantizada. Estilo impoluto.",
@@ -27,7 +24,7 @@ const SLIDES = [
   },
   {
     id: 3,
-    image: boutiqueImg,
+    image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1600&auto=format&fit=crop",
     subtitle: "Protección Climática Sutil",
     title: "CORTAVIENTOS DE ALTO PERFIL",
     description: "Menor de 150 gramos, repelente a llovizna extrema y empacable en su propio bolsillo. Calidad de alta costura.",

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import { Compass, Sparkles, AlertCircle, ShoppingBag, ShieldCheck, HelpCircle } from "lucide-react";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import { Compass } from "lucide-react";
 import { Product, CartItem, Order, FiltersState, ProductCategory, ProductSize, OrderStatus } from "./types";
 import { PRODUCTS, INITIAL_ORDERS } from "./data";
-import { auth, db } from "./firebase";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { db } from "./firebase";
+import { collection, onSnapshot, query } from "firebase/firestore";
 import Navbar from "./components/Navbar";
 import HeroSlider from "./components/HeroSlider";
 import ProductCard from "./components/ProductCard";
@@ -27,7 +27,6 @@ const DEFAULT_FILTERS: FiltersState = {
 
 export default function App() {
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [searchValue, setSearchValue] = useState("");
   const [filters, setFilters] = useState<FiltersState>(DEFAULT_FILTERS);
@@ -59,31 +58,32 @@ export default function App() {
 
   // Fetch products from Firestore
   useEffect(() => {
-    const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, "products"));
     const unsub = onSnapshot(q, (snapshot) => {
       const prods: Product[] = [];
       snapshot.forEach(doc => {
         const data = doc.data();
         prods.push({
-          id: data.id,
+          id: data.id || doc.id,
           name: data.name,
           price: data.price,
           description: data.description,
           category: data.category as ProductCategory,
-          sizeOptions: data.sizeOptions,
-          colorOptions: data.colorOptions,
+          sizeOptions: data.sizeOptions || [],
+          colorOptions: data.colorOptions || [],
           mainImage: data.mainImage,
           galleryImages: data.galleryImages || [],
-          rating: data.rating,
-          reviewsCount: data.reviewsCount,
-          isNew: data.isNew,
-          isFeatured: data.isFeatured,
+          rating: data.rating || 5,
+          reviewsCount: data.reviewsCount || 0,
+          isNew: data.isNew ?? true,
+          isFeatured: data.isFeatured ?? false,
           specifications: data.specifications || []
         });
       });
+      console.log("✅ Fetched firebaseProducts:", prods);
       setFirebaseProducts(prods);
     }, (error) => {
-      console.error("Firestore products error: ", error);
+      console.error("❌ Firestore products error: ", error);
     });
     return () => unsub();
   }, []);
@@ -281,7 +281,7 @@ export default function App() {
       prevOrders.map((ord) => {
         if (ord.id !== orderId) return ord;
 
-        const updatedTimeline = ord.timeline.map((event, i) => {
+        const updatedTimeline = ord.timeline.map((event) => {
           const isConfirmado = event.status === "confirmado";
           return {
             ...event,

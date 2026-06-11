@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import logoImage from "../assets/images/logo.png";
+import React from "react";
 
 interface LogoProps {
   className?: string;
@@ -7,25 +6,10 @@ interface LogoProps {
 }
 
 export default function Logo({ className = "h-8 text-black", isFooter = false }: LogoProps) {
-  const [imgError, setImgError] = useState(false);
-
-  if (!imgError) {
-    return (
-      <img
-        src={logoImage}
-        alt="Cacao Logo"
-        className={`${className} object-contain transition-all ${
-          isFooter ? "brightness-0 invert" : ""
-        }`}
-        onError={() => setImgError(true)}
-      />
-    );
-  }
-
   return (
     <svg
       viewBox="0 0 288 100"
-      className={`${className} fill-none shrink-0`}
+      className={`${className} fill-none shrink-0 ${isFooter ? "text-white" : ""}`}
       xmlns="http://www.w3.org/2000/svg"
     >
       {/* C */}
