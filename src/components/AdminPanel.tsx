@@ -6,15 +6,19 @@ import {
   signOut, 
   User 
 } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp, collection, query, onSnapshot, deleteDoc, updateDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { ProductCategory, ProductSize } from "../types";
-import { LogOut, UploadCloud, PlusCircle, CheckCircle, AlertCircle, Mail, Lock, ShieldCheck } from "lucide-react";
+import { Product, ProductCategory, ProductSize } from "../types";
+import { LogOut, UploadCloud, PlusCircle, CheckCircle, AlertCircle, Mail, Lock, ShieldCheck, Edit, Trash2 } from "lucide-react";
 
 export default function AdminPanel() {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [existingImage, setExistingImage] = useState<string>("");
 
   // Form states product
   const [name, setName] = useState("");
@@ -34,6 +38,35 @@ export default function AdminPanel() {
   const [authPassword, setAuthPassword] = useState("");
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    const q = query(collection(db, "products"));
+    const unsub = onSnapshot(q, (snapshot) => {
+      const prods: Product[] = [];
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        prods.push({
+          id: data.id || doc.id,
+          name: data.name,
+          price: data.price,
+          description: data.description,
+          category: data.category,
+          sizeOptions: data.sizeOptions || [],
+          colorOptions: data.colorOptions || [],
+          mainImage: data.mainImage,
+          galleryImages: data.galleryImages || [],
+          rating: data.rating || 5,
+          reviewsCount: data.reviewsCount || 0,
+          isNew: data.isNew ?? true,
+          isFeatured: data.isFeatured ?? false,
+          specifications: data.specifications || []
+        });
+      });
+      setProducts(prods.sort((a,b) => b.id.localeCompare(a.id)));
+    });
+    return () => unsub();
+  }, [isAdmin]);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -97,9 +130,45 @@ export default function AdminPanel() {
     setSizeOptions(prev => prev.includes(sz) ? prev.filter(s => s !== sz) : [...prev, sz]);
   };
 
+  const handleEdit = (prod: Product) => {
+    setEditingId(prod.id);
+    setName(prod.name);
+    setPrice(prod.price.toString());
+    setDescription(prod.description);
+    setCategory(prod.category);
+    setSizeOptions(prod.sizeOptions);
+    setColorOptions(prod.colorOptions.join(", "));
+    setExistingImage(prod.mainImage || "");
+    setImageFile(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("¿Estás completamente seguro de que deseas eliminar este producto permanentemente?")) {
+      try {
+        await deleteDoc(doc(db, "products", id));
+      } catch (err) {
+        console.error("Error al eliminar", err);
+        alert("Error al intentar eliminar el producto.");
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setEditingId(null);
+    setName("");
+    setPrice("");
+    setDescription("");
+    setCategory("Shorts");
+    setSizeOptions(["S", "M", "L"]);
+    setColorOptions("Negro");
+    setExistingImage("");
+    setImageFile(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!imageFile) {
+    if (!imageFile && !existingImage) {
       setErrorMsg("Debes subir una imagen principal.");
       return;
     }
@@ -109,81 +178,95 @@ export default function AdminPanel() {
     }
 
     setUploading(true);
-    setUploadMsg("Subiendo imagen a alta velocidad...");
+    setUploadMsg(editingId ? "Actualizando producto en la base de datos..." : "Ejecutando proceso de carga...");
     setErrorMsg("");
 
-    try {
-      const productId = "product_" + Date.now().toString();
-      
-      const fileDataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement("canvas");
-            const MAX_WIDTH = 600;
-            const MAX_HEIGHT = 600;
-            let width = img.width;
-            let height = img.height;
+      try {
+      let fileDataUrl = existingImage;
 
-            if (width > height) {
-              if (width > MAX_WIDTH) {
-                height = Math.round((height * MAX_WIDTH) / width);
-                width = MAX_WIDTH;
+      if (imageFile) {
+        fileDataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              const MAX_WIDTH = 600;
+              const MAX_HEIGHT = 600;
+              let width = img.width;
+              let height = img.height;
+
+              if (width > height) {
+                if (width > MAX_WIDTH) {
+                  height = Math.round((height * MAX_WIDTH) / width);
+                  width = MAX_WIDTH;
+                }
+              } else {
+                if (height > MAX_HEIGHT) {
+                  width = Math.round((width * MAX_HEIGHT) / height);
+                  height = MAX_HEIGHT;
+                }
               }
-            } else {
-              if (height > MAX_HEIGHT) {
-                width = Math.round((width * MAX_HEIGHT) / height);
-                height = MAX_HEIGHT;
-              }
-            }
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext("2d");
-            if (!ctx) return reject("Canvas no soportado");
-            ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL("image/webp", 0.6)); // Compress more
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext("2d");
+              if (!ctx) return reject("Canvas no soportado");
+              ctx.drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL("image/webp", 0.6)); // Compress more
+            };
+            img.onerror = reject;
+            img.src = e.target?.result as string;
           };
-          img.onerror = reject;
-          img.src = e.target?.result as string;
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(imageFile);
-      });
+          reader.onerror = reject;
+          reader.readAsDataURL(imageFile);
+        });
+      }
 
-      setUploadMsg("Estableciendo conexión segura con la base de datos de productos...");
+      setUploadMsg("Estableciendo conexión segura con la base de datos...");
       
       const parsedColors = colorOptions.split(",").map(c => c.trim()).filter(Boolean);
 
-      const newProduct = {
-        id: productId,
-        name,
-        price: parseFloat(price),
-        description,
-        category,
-        sizeOptions,
-        colorOptions: parsedColors,
-        mainImage: fileDataUrl,
-        galleryImages: [],
-        rating: 5,
-        reviewsCount: 0,
-        isNew: true,
-        isFeatured: false,
-        specifications: [],
-        createdAt: serverTimestamp()
-      };
+      if (editingId) {
+        await updateDoc(doc(db, "products", editingId), {
+          name,
+          price: parseFloat(price),
+          description,
+          category,
+          sizeOptions,
+          colorOptions: parsedColors,
+          mainImage: fileDataUrl
+        });
+        setUploadMsg("");
+        setErrorMsg("");
+        alert("¡PRODUCTO ACTUALIZADO CON ÉXITO!");
+      } else {
+        const productId = "product_" + Date.now().toString();
+        const newProduct = {
+          id: productId,
+          name,
+          price: parseFloat(price),
+          description,
+          category,
+          sizeOptions,
+          colorOptions: parsedColors,
+          mainImage: fileDataUrl,
+          galleryImages: [],
+          rating: 5,
+          reviewsCount: 0,
+          isNew: true,
+          isFeatured: false,
+          specifications: [],
+          createdAt: serverTimestamp()
+        };
 
-      await setDoc(doc(db, "products", productId), newProduct);
+        await setDoc(doc(db, "products", productId), newProduct);
 
-      setUploadMsg("");
-      setErrorMsg("");
-      alert("¡RENDIMIENTO ÓPTIMO! Producto añadido con éxito al catálogo.");
+        setUploadMsg("");
+        setErrorMsg("");
+        alert("¡RENDIMIENTO ÓPTIMO! Producto añadido con éxito al catálogo.");
+      }
       
-      setName("");
-      setPrice("");
-      setDescription("");
-      setColorOptions("Negro");
-      setImageFile(null);
+      resetForm();
     } catch (err: any) {
       console.error(err);
       
@@ -316,9 +399,16 @@ export default function AdminPanel() {
         {/* Decorative structural elements */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-neutral-100 rounded-bl-full -z-10 mix-blend-multiply opacity-50"></div>
         
-        <h2 className="text-xl font-black uppercase tracking-widest mb-8 flex items-center gap-3 border-b-2 border-neutral-100 pb-4">
-          <PlusCircle className="w-6 h-6 text-black" /> 
-          REGISTRO DE NUEVA PRENDA
+        <h2 className="text-xl font-black uppercase tracking-widest mb-8 flex items-center justify-between border-b-2 border-neutral-100 pb-4">
+          <div className="flex items-center gap-3">
+            <PlusCircle className="w-6 h-6 text-black" /> 
+            {editingId ? "EDICIÓN DE PRENDA" : "REGISTRO DE NUEVA PRENDA"}
+          </div>
+          {editingId && (
+            <button type="button" onClick={resetForm} className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-neutral-200 text-black hover:bg-black hover:text-white transition-colors">
+              CANCELAR EDICIÓN
+            </button>
+          )}
         </h2>
         
         {errorMsg && <div className="mb-8 bg-red-50 text-red-800 p-4 border-2 border-red-800 text-[11px] font-black uppercase flex items-center gap-3"><AlertCircle className="w-5 h-5" /> {errorMsg}</div>}
@@ -375,14 +465,20 @@ export default function AdminPanel() {
 
           <div>
             <label className="block text-[10px] font-black uppercase tracking-widest text-black mb-2">ACTIVO VISUAL PRINCIPAL</label>
-            <div className={`border-4 border-dashed p-10 text-center transition-colors cursor-pointer relative ${imageFile ? 'border-amber-400 bg-amber-50' : 'border-neutral-300 bg-neutral-50 hover:border-black hover:bg-neutral-100'}`}>
-              <input type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-              <UploadCloud className={`w-12 h-12 mx-auto mb-4 ${imageFile ? 'text-amber-500' : 'text-neutral-400'}`} />
+            <div className={`border-4 border-dashed p-10 text-center transition-colors cursor-pointer relative ${imageFile || existingImage ? 'border-amber-400 bg-amber-50' : 'border-neutral-300 bg-neutral-50 hover:border-black hover:bg-neutral-100'}`}>
+              <input type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+              <UploadCloud className={`w-12 h-12 mx-auto mb-4 ${imageFile || existingImage ? 'text-amber-500' : 'text-neutral-400'}`} />
               {imageFile ? (
                 <>
-                  <span className="text-xs font-black uppercase text-black block mb-1">ARCHIVO CAPTURADO:</span>
+                  <span className="text-xs font-black uppercase text-black block mb-1">ARCHIVO CAPTURADO (NUEVO):</span>
                   <span className="text-sm font-bold text-amber-600 block truncate px-4">{imageFile.name}</span>
                 </>
+              ) : existingImage ? (
+                <div className="flex flex-col items-center">
+                  <span className="text-xs font-black uppercase text-black block mb-2">IMAGEN ACTUAL MANTENIDA</span>
+                  <img src={existingImage} alt="Preview" className="w-20 h-20 object-cover border-2 border-black" />
+                  <span className="text-[10px] uppercase font-bold text-neutral-500 mt-2">Haz clic para reemplazarla</span>
+                </div>
               ) : (
                 <span className="text-xs font-black uppercase tracking-widest text-neutral-500">ARRASTRA O HAZ CLIC PARA SELECCIONAR LA IMAGEN</span>
               )}
@@ -395,10 +491,66 @@ export default function AdminPanel() {
               disabled={uploading}
               className="w-full bg-black text-white font-black uppercase tracking-widest text-sm py-5 border-4 border-black hover:bg-neutral-800 disabled:opacity-50 transition-all flex items-center justify-center gap-3 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)] active:shadow-none active:translate-y-1 active:translate-x-1"
             >
-              {uploading ? "SINCRONIZANDO CON RED..." : "EJECUTAR CARGA DE PRODUCTO AL CATÁLOGO"}
+              {uploading ? "SINCRONIZANDO CON RED..." : (editingId ? "GUARDAR CAMBIOS DEL PRODUCTO" : "EJECUTAR CARGA DE PRODUCTO AL CATÁLOGO")}
             </button>
           </div>
         </form>
+      </div>
+
+      {/* Inventory List Section */}
+      <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mt-12 overflow-hidden">
+        <div className="p-6 sm:p-10 border-b-2 border-neutral-100 bg-neutral-50">
+          <h2 className="text-xl font-black uppercase tracking-widest flex items-center gap-3">
+            <ShieldCheck className="w-6 h-6 text-black" /> 
+            INVENTARIO ACTUAL ({products.length})
+          </h2>
+        </div>
+        <div className="p-0 overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-neutral-100 border-b-2 border-neutral-200">
+                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-neutral-500 min-w-[200px]">Prenda</th>
+                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-neutral-500">Categoría</th>
+                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-neutral-500">Precio</th>
+                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-neutral-500 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.map(prod => (
+                <tr key={prod.id} className="border-b border-neutral-100 hover:bg-neutral-50 transition-colors">
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <img src={prod.mainImage} alt={prod.name} className="w-10 h-10 object-cover border-2 border-neutral-200 bg-white" />
+                      <div>
+                        <p className="font-black text-xs uppercase text-black line-clamp-1">{prod.name}</p>
+                        <p className="text-[10px] text-neutral-500 uppercase">{prod.colorOptions.length} Color(es) • {prod.sizeOptions.join(", ")}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-4 text-xs font-bold text-neutral-600 uppercase whitespace-nowrap">{prod.category}</td>
+                  <td className="p-4 text-xs font-black whitespace-nowrap">${prod.price.toLocaleString("es-CO")}</td>
+                  <td className="p-4 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button onClick={() => handleEdit(prod)} className="p-2 border-2 border-black bg-white hover:bg-black hover:text-white transition-all group shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-0.5 active:translate-y-0.5" title="Editar">
+                        <Edit className="w-4 h-4 text-black group-hover:text-white" />
+                      </button>
+                      <button onClick={() => handleDelete(prod.id)} className="p-2 border-2 border-black bg-white hover:bg-red-500 hover:text-white hover:border-red-500 transition-all group shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-0.5 active:translate-y-0.5" title="Eliminar">
+                        <Trash2 className="w-4 h-4 text-black group-hover:text-white" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {products.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center text-xs font-bold uppercase text-neutral-400">
+                    No hay prendas registradas en el inventario.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>
