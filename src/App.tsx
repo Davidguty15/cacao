@@ -563,7 +563,7 @@ export default function App() {
               <div className="flex flex-col gap-2.5 text-xs text-neutral-300 font-black uppercase tracking-wider">
                 <button onClick={() => { navigate("/tracking"); setSearchedOrderCode(null); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer">Seguimiento de Envío</button>
                 <span className="text-left text-neutral-400 cursor-default text-[9px] font-bold">Atención Personalizada de Lunes a Sábado</span>
-                <span className="text-left font-black text-white hover:text-amber-400 text-[10px] break-all">HELLO@CACAOACTIVEWEAR.COM</span>
+                <span className="text-left font-black text-white hover:text-amber-400 text-[10px] break-all">cacao.cosport@gmail.com</span>
                 <button onClick={() => { navigate("/panel"); setSearchedOrderCode(null); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer mt-4">Acceso Administrativo</button>
               </div>
             </div>
