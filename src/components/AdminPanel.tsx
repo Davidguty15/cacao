@@ -115,11 +115,43 @@ export default function AdminPanel() {
     try {
       const productId = "product_" + Date.now().toString();
       
-      const storageRef = ref(storage, `products/${productId}_main`);
-      const snapshot = await uploadBytes(storageRef, imageFile);
-      const downloadURL = await getDownloadURL(snapshot.ref);
+      const fileDataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const MAX_WIDTH = 800;
+            const MAX_HEIGHT = 800;
+            let width = img.width;
+            let height = img.height;
 
-      setUploadMsg("Estableciendo conexión segura con base de datos...");
+            if (width > height) {
+              if (width > MAX_WIDTH) {
+                height = Math.round((height * MAX_WIDTH) / width);
+                width = MAX_WIDTH;
+              }
+            } else {
+              if (height > MAX_HEIGHT) {
+                width = Math.round((width * MAX_HEIGHT) / height);
+                height = MAX_HEIGHT;
+              }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return reject("Canvas no soportado");
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/webp", 0.7)); // Compress to WebP
+          };
+          img.onerror = reject;
+          img.src = e.target?.result as string;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(imageFile);
+      });
+
+      setUploadMsg("Estableciendo conexión segura con la base de datos de productos...");
       
       const parsedColors = colorOptions.split(",").map(c => c.trim()).filter(Boolean);
 
@@ -131,7 +163,7 @@ export default function AdminPanel() {
         category,
         sizeOptions,
         colorOptions: parsedColors,
-        mainImage: downloadURL,
+        mainImage: fileDataUrl,
         galleryImages: [],
         rating: 5,
         reviewsCount: 0,
