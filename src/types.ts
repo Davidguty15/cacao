@@ -60,5 +60,6 @@ export interface FiltersState {
   colors: string[];
   minPrice: number;
   maxPrice: number;
+  isPriceFilterActive?: boolean;
   sortBy: "featured" | "priceAsc" | "priceDesc" | "rating";
 }

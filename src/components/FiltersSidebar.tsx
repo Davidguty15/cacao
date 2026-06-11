@@ -172,21 +172,33 @@ export default function FiltersSidebar({ filters, onFiltersChange, onResetFilter
 
       {/* Price Range Slider Facet */}
       <div>
-        <h3 className="text-[11px] font-black uppercase text-black tracking-widest mb-2.5">PRECIO MÁXIMO</h3>
+        <div className="flex items-center justify-between mb-2.5">
+          <h3 className="text-[11px] font-black uppercase text-black tracking-widest">PRECIO MÁXIMO</h3>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input 
+              type="checkbox" 
+              checked={!!filters.isPriceFilterActive}
+              onChange={(e) => onFiltersChange({ ...filters, isPriceFilterActive: e.target.checked })}
+              className="accent-black w-3.5 h-3.5 cursor-pointer"
+            />
+            <span className="text-[10px] font-bold uppercase text-neutral-500">Habilitar</span>
+          </label>
+        </div>
         
         <input
           type="range"
-          min="30000"
-          max="120000"
-          step="5000"
+          min="0"
+          max="600000"
+          step="10000"
           value={filters.maxPrice}
           onChange={(e) => handlePriceChange(e, true)}
-          className="w-full h-2 bg-neutral-100 border-2 border-black outline-none cursor-pointer appearance-none"
+          disabled={!filters.isPriceFilterActive}
+          className={`w-full h-2 bg-neutral-100 border-2 border-black outline-none appearance-none ${filters.isPriceFilterActive ? "cursor-pointer" : "opacity-50 cursor-not-allowed"}`}
         />
 
-        <div className="mt-3 flex items-center justify-between text-xs font-black text-black font-sans">
-          <span>{formatPrice(30000)}</span>
-          <span className="bg-black text-white text-[10px] uppercase font-black tracking-widest px-2.5 py-1 border border-black">
+        <div className={`mt-3 flex items-center justify-between text-xs font-black font-sans ${filters.isPriceFilterActive ? 'text-black' : 'text-neutral-400'}`}>
+          <span>{formatPrice(0)}</span>
+          <span className={`${filters.isPriceFilterActive ? 'bg-black text-white border-black' : 'bg-neutral-200 text-neutral-500 border-neutral-300'} text-[10px] uppercase font-black tracking-widest px-2.5 py-1 border transition-colors`}>
             HASTA {formatPrice(filters.maxPrice)}
           </span>
         </div>

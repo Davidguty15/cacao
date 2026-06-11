@@ -20,8 +20,9 @@ const DEFAULT_FILTERS: FiltersState = {
   category: "All",
   sizes: [],
   colors: [],
-  minPrice: 30000,
-  maxPrice: 120000,
+  minPrice: 0,
+  maxPrice: 600000,
+  isPriceFilterActive: false,
   sortBy: "featured",
 };
 
@@ -331,8 +332,10 @@ export default function App() {
     }
 
     // 5. Price
-    if (prod.price > filters.maxPrice) {
-      return false;
+    if (filters.isPriceFilterActive) {
+      if (prod.price > filters.maxPrice || prod.price < filters.minPrice) {
+        return false;
+      }
     }
 
     return true;
