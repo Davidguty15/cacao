@@ -24,7 +24,7 @@ service cloud.firestore {
       return request.auth != null; 
     }
     function isAdmin() { 
-      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.token.email)); 
+      return isSignedIn() && (exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) || request.auth.token.email == 'david.gutierrez906@asys.edu.co' || request.auth.token.email == 'david1515.org@gmail.com'); 
     }
 
     // --------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ service cloud.firestore {
         && data.category is string && data.category.size() <= 100
         && data.sizeOptions is list && data.sizeOptions.size() <= 20
         && data.colorOptions is list && data.colorOptions.size() <= 50
-        && data.mainImage is string && data.mainImage.size() <= 1000
+        && data.mainImage is string && data.mainImage.size() <= 800000
         && data.galleryImages is list && data.galleryImages.size() <= 20
         && data.rating is number && data.rating >= 0 && data.rating <= 5
         && data.reviewsCount is number && data.reviewsCount >= 0
