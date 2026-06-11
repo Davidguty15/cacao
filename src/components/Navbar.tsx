@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ShoppingBag, Search, Compass, Truck, ShieldCheck, Heart } from "lucide-react";
-import Logo from "./logo.png";
+import Logo from "./Logo";
 
 interface NavbarProps {
   cartCount: number;
