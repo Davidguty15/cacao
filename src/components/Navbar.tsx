@@ -133,7 +133,7 @@ export default function Navbar({
           <ShieldCheck className="w-4 h-4 text-neutral-300 stroke-[2.5]" /> Pago Seguro
         </span>
         <span className="hidden sm:inline text-neutral-800">|</span>
-        <span>Envío Premium Express Gratis desde $80.000</span>
+        <span>Envío gratuito a Rionegro-Antioquia</span>
         <span className="hidden sm:inline text-neutral-800">|</span>
         <span className="hidden sm:inline">Colección Limitada de Alta Costura</span>
       </div>

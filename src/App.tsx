@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { Compass } from "lucide-react";
 import { Product, CartItem, Order, FiltersState, ProductCategory, ProductSize, OrderStatus } from "./types";
-import { PRODUCTS, INITIAL_ORDERS } from "./data";
 import { db } from "./firebase";
 import { collection, onSnapshot, query } from "firebase/firestore";
 import Navbar from "./components/Navbar";
@@ -46,9 +45,9 @@ export default function App() {
   const [orders, setOrders] = useState<Order[]>(() => {
     try {
       const stored = localStorage.getItem("cacao_orders_database");
-      return stored ? JSON.parse(stored) : INITIAL_ORDERS;
+      return stored ? JSON.parse(stored) : [];
     } catch {
-      return INITIAL_ORDERS;
+      return [];
     }
   });
 
@@ -301,9 +300,7 @@ export default function App() {
   };
 
   // Filter application algorithms
-  const allMergedProducts = [...firebaseProducts, ...PRODUCTS];
-
-  const filteredProducts = allMergedProducts.filter((prod) => {
+  const filteredProducts = firebaseProducts.filter((prod) => {
     // 1. Search Query
     if (searchValue) {
       const q = searchValue.toLowerCase();
@@ -393,7 +390,7 @@ export default function App() {
                     {/* Results counts indicator */}
                     <div className="flex justify-between items-center border-b-2 border-black pb-3">
                       <span className="text-xs font-black text-black uppercase tracking-widest">
-                        MOSTRANDO {filteredProducts.length} DE {allMergedProducts.length} PRENDAS
+                        MOSTRANDO {filteredProducts.length} DE {firebaseProducts.length} PRENDAS
                       </span>
                       {searchValue && (
                         <span className="text-xs text-black font-black uppercase tracking-wider">
