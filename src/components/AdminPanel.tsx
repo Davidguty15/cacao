@@ -19,6 +19,7 @@ export default function AdminPanel() {
   const [products, setProducts] = useState<Product[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [existingImage, setExistingImage] = useState<string>("");
+  const [existingGalleryImages, setExistingGalleryImages] = useState<string[]>([]);
 
   // Form states product
   const [name, setName] = useState("");
@@ -28,6 +29,7 @@ export default function AdminPanel() {
   const [sizeOptions, setSizeOptions] = useState<ProductSize[]>(["S", "M", "L"]);
   const [colorOptions, setColorOptions] = useState("Negro");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
 
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState("");
@@ -139,7 +141,9 @@ export default function AdminPanel() {
     setSizeOptions(prod.sizeOptions);
     setColorOptions(prod.colorOptions.join(", "));
     setExistingImage(prod.mainImage || "");
+    setExistingGalleryImages(prod.galleryImages || []);
     setImageFile(null);
+    setGalleryFiles([]);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -163,7 +167,9 @@ export default function AdminPanel() {
     setSizeOptions(["S", "M", "L"]);
     setColorOptions("Negro");
     setExistingImage("");
+    setExistingGalleryImages([]);
     setImageFile(null);
+    setGalleryFiles([]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -224,6 +230,41 @@ export default function AdminPanel() {
 
       setUploadMsg("Estableciendo conexión segura con la base de datos...");
       
+      let galleryDataUrls = [...existingGalleryImages];
+      if (galleryFiles.length > 0) {
+        for (const file of galleryFiles) {
+          const url = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const img = new Image();
+              img.onload = () => {
+                const canvas = document.createElement("canvas");
+                const MAX_WIDTH = 600;
+                const MAX_HEIGHT = 600;
+                let width = img.width;
+                let height = img.height;
+                if (width > height) {
+                  if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
+                } else {
+                  if (height > MAX_HEIGHT) { width = Math.round((width * MAX_HEIGHT) / height); height = MAX_HEIGHT; }
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                if (!ctx) return reject("Canvas no soportado");
+                ctx.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL("image/webp", 0.6));
+              };
+              img.onerror = reject;
+              img.src = e.target?.result as string;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+          galleryDataUrls.push(url);
+        }
+      }
+
       const parsedColors = colorOptions.split(",").map(c => c.trim()).filter(Boolean);
 
       if (editingId) {
@@ -234,7 +275,8 @@ export default function AdminPanel() {
           category,
           sizeOptions,
           colorOptions: parsedColors,
-          mainImage: fileDataUrl
+          mainImage: fileDataUrl,
+          galleryImages: galleryDataUrls
         });
         setUploadMsg("");
         setErrorMsg("");
@@ -250,7 +292,7 @@ export default function AdminPanel() {
           sizeOptions,
           colorOptions: parsedColors,
           mainImage: fileDataUrl,
-          galleryImages: [],
+          galleryImages: galleryDataUrls,
           rating: 5,
           reviewsCount: 0,
           isNew: true,
@@ -483,6 +525,44 @@ export default function AdminPanel() {
                 <span className="text-xs font-black uppercase tracking-widest text-neutral-500">ARRASTRA O HAZ CLIC PARA SELECCIONAR LA IMAGEN</span>
               )}
             </div>
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-black mb-2">ACTIVOS VISUALES SECUNDARIOS (GALERÍA)</label>
+            <div className={`border-4 border-dashed p-10 text-center transition-colors cursor-pointer relative ${(galleryFiles && galleryFiles.length > 0) ? 'border-amber-400 bg-amber-50' : 'border-neutral-300 bg-neutral-50 hover:border-black hover:bg-neutral-100'}`}>
+              <input type="file" accept="image/*" multiple onChange={e => {
+                if (e.target.files) {
+                  setGalleryFiles(Array.from(e.target.files));
+                }
+              }} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+              <UploadCloud className={`w-12 h-12 mx-auto mb-4 ${(galleryFiles && galleryFiles.length > 0) ? 'text-amber-500' : 'text-neutral-400'}`} />
+              {galleryFiles && galleryFiles.length > 0 ? (
+                <>
+                  <span className="text-xs font-black uppercase text-black block mb-1">{galleryFiles.length} ARCHIVO(S) CAPTURADO(S):</span>
+                  <span className="text-sm font-bold text-amber-600 block truncate px-4">
+                    {galleryFiles.map(f => f.name).join(", ")}
+                  </span>
+                </>
+              ) : (
+                <span className="text-xs font-black uppercase tracking-widest text-neutral-500">ARRASTRA O HAZ CLIC PARA AÑADIR MÁS IMÁGENES</span>
+              )}
+            </div>
+            
+            {existingGalleryImages && existingGalleryImages.length > 0 && (
+              <div className="mt-4">
+                <span className="text-[10px] font-black uppercase tracking-widest text-black mb-2 block">IMÁGENES ACTUALES EN GALERÍA ({existingGalleryImages.length})</span>
+                <div className="flex flex-wrap gap-2">
+                  {existingGalleryImages.map((img, idx) => (
+                    <div key={idx} className="relative group">
+                      <img src={img} alt={`Gallery ${idx}`} className="w-16 h-16 object-cover border-2 border-black" />
+                      <button type="button" onClick={() => setExistingGalleryImages(prev => prev.filter((_, i) => i !== idx))} className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="pt-6 border-t-2 border-neutral-100">

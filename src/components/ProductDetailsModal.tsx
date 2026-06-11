@@ -76,8 +76,8 @@ export default function ProductDetailsModal({ product, onClose, onAddToCart }: P
 
             {/* Gallery thumbnails */}
             {product.galleryImages && product.galleryImages.length > 0 && (
-              <div className="mt-4 flex gap-2 justify-center">
-                {product.galleryImages.map((img, i) => (
+              <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                {[product.mainImage, ...product.galleryImages].map((img, i) => (
                   <button
                     key={i}
                     onClick={() => setSelectedImage(img)}
