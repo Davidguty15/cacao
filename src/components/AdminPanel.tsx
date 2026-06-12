@@ -25,7 +25,7 @@ export default function AdminPanel() {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState<ProductCategory>("Shorts");
+  const [category, setCategory] = useState<ProductCategory>("Enterizos");
   const [sizeOptions, setSizeOptions] = useState<ProductSize[]>(["S", "M", "L"]);
   const [colorOptions, setColorOptions] = useState("Negro");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -166,7 +166,7 @@ export default function AdminPanel() {
     setName("");
     setPrice("");
     setDescription("");
-    setCategory("Shorts");
+    setCategory("Enterizos");
     setSizeOptions(["S", "M", "L"]);
     setColorOptions("Negro");
     setStock({});
@@ -478,10 +478,15 @@ export default function AdminPanel() {
             <div>
               <label className="block text-[10px] font-black uppercase tracking-widest text-black mb-2">LÍNEA TEXTIL (CATEGORÍA)</label>
               <select value={category} onChange={e => setCategory(e.target.value as ProductCategory)} className="w-full border-2 border-black p-3.5 text-sm font-black uppercase focus:outline-none focus:border-amber-400 bg-neutral-50 focus:bg-white transition-colors cursor-pointer appearance-none">
-                <option value="Shorts">01 — SHORTS Y BERMUDAS</option>
-                <option value="Camisas">02 — PLAYERAS TÉCNICAS</option>
-                <option value="Leggins">03 — LEGGINGS COMPRESIÓN</option>
-                <option value="Chaquetas">04 — OUTERS Y CHAQUETAS</option>
+                <option value="Enterizos">01 — ENTERIZOS</option>
+                <option value="Chaquetas">02 — CHAQUETAS</option>
+                <option value="Shorts">03 — SHORTS</option>
+                <option value="Leggins">04 — LEGGINS</option>
+                <option value="Tops">05 — TOPS</option>
+                <option value="Balacas">06 — BALACAS</option>
+                <option value="Medias">07 — MEDIAS</option>
+                <option value="Termos">08 — TERMOS</option>
+                <option value="Camisas">09 — CAMISAS</option>
               </select>
             </div>
             <div>

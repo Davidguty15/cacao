@@ -98,7 +98,7 @@ export default function App() {
   }, [orders]);
 
   // Sync category selected from slide clicks
-  const handleSelectSliderCategory = (category: "Shorts" | "Camisas" | "Leggins" | "Chaquetas" | "All") => {
+  const handleSelectSliderCategory = (category: ProductCategory | "All") => {
     setFilters({ ...DEFAULT_FILTERS, category });
     // Scroll window smoothly down to product listing catalogs
     const catalogueEl = document.getElementById("catalogo-ropa");
@@ -550,6 +550,7 @@ export default function App() {
             <div>
               <h5 className="text-[10px] font-black tracking-widest text-neutral-400 uppercase mb-4">MAPEO DE ESTILOS</h5>
               <div className="flex flex-col gap-2.5 text-xs text-neutral-300 font-black uppercase tracking-wider">
+                <button onClick={() => { navigate('/'); handleSelectSliderCategory("Enterizos"); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer">Enterizos</button>
                 <button onClick={() => { navigate('/'); handleSelectSliderCategory("Shorts"); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer">Shorts Técnicos</button>
                 <button onClick={() => { navigate('/'); handleSelectSliderCategory("Camisas"); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer">Playeras y Camisetas</button>
                 <button onClick={() => { navigate('/'); handleSelectSliderCategory("Leggins"); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer">Leggings de Compresión</button>

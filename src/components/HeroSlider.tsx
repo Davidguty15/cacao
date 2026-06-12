@@ -5,6 +5,8 @@ import banner1 from "../assets/images/banner1.png";
 import banner2 from "../assets/images/banner2.png";
 import banner3 from "../assets/images/banner3.png";
 
+import { ProductCategory } from "../types";
+
 // Beautiful custom banner structures
 const SLIDES = [
   {
@@ -20,16 +22,16 @@ const SLIDES = [
     id: 2,
     image: banner2,
     subtitle: "Ingeniería de Tejidos Premium",
-    title: "LEGGINGS ESCULPIDOS DE ALTO MOVIMIENTO",
+    title: "ROPA SEAMLESS QUE SE AJUSTA A TU CUERPO",
     description: "Soporte absoluto abdominal de doble capa con opacidad squat-proof 100% garantizada. Estilo impoluto.",
-    cta: "Ver Leggins",
-    targetCategory: "Leggins" as const,
+    cta: "Ver",
+    targetCategory: "Enterizos" as const, // Change to Enterizos because Seamless isn't allowed
   },
   {
     id: 3,
     image: banner3,
     subtitle: "Protección Climática Sutil",
-    title: "CORTAVIENTOS DE ALTO PERFIL",
+    title: "ENTERIZOS Y CHAQUETAS DE ALTO PERFIL",
     description: "Menor de 150 gramos, repelente a llovizna extrema y empacable en su propio bolsillo. Calidad de alta costura.",
     cta: "Ver Chaquetas",
     targetCategory: "Chaquetas" as const,
@@ -37,7 +39,7 @@ const SLIDES = [
 ];
 
 interface HeroSliderProps {
-  onSelectCategory: (category: "Shorts" | "Camisas" | "Leggins" | "Chaquetas" | "All") => void;
+  onSelectCategory: (category: ProductCategory | "All") => void;
 }
 
 export default function HeroSlider({ onSelectCategory }: HeroSliderProps) {
