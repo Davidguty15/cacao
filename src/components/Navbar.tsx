@@ -19,7 +19,6 @@ export default function Navbar({
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const location = useLocation();
   const isShop = location.pathname === "/";
-  const isTracking = location.pathname === "/tracking";
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white border-b-2 border-black transition-all duration-300">
@@ -47,17 +46,6 @@ export default function Navbar({
                 }`}
               >
                 Colección
-              </Link>
-              <Link
-                to="/tracking"
-                className={`text-xs font-black tracking-widest transition-colors duration-200 uppercase flex items-center gap-1.5 ${
-                  isTracking
-                    ? "text-black border-b-2 border-black pb-1 pt-1"
-                    : "text-neutral-400 hover:text-black hover:border-b-2 hover:border-neutral-200 pb-1 pt-1"
-                }`}
-              >
-                <Truck className="w-4 h-4 text-black stroke-[2.5]" />
-                Seguir Pedido
               </Link>
             </nav>
           </div>
@@ -97,15 +85,6 @@ export default function Navbar({
                 title="Tienda"
               >
                 <Compass className="w-5 h-5 stroke-[2.5]" />
-              </Link>
-              <Link
-                to="/tracking"
-                className={`p-1.5 border relative ${
-                  isTracking ? "bg-black text-white border-black" : "text-neutral-500 border-neutral-200"
-                }`}
-                title="Seguimiento"
-              >
-                <Truck className="w-5 h-5 stroke-[2.5]" />
               </Link>
             </div>
 

@@ -10,7 +10,6 @@ import ProductCard from "./components/ProductCard";
 import ProductDetailsModal from "./components/ProductDetailsModal";
 import FiltersSidebar from "./components/FiltersSidebar";
 import CartDrawer from "./components/CartDrawer";
-import OrderTracker from "./components/OrderTracker";
 import Logo from "./components/Logo";
 
 import AdminPanel from "./components/AdminPanel";
@@ -53,7 +52,6 @@ export default function App() {
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [searchedOrderCode, setSearchedOrderCode] = useState<string | null>(null);
   const [firebaseProducts, setFirebaseProducts] = useState<Product[]>([]);
 
   // Fetch products from Firestore
@@ -270,79 +268,6 @@ export default function App() {
     setOrders((prev) => [newOrder, ...prev]);
     setCartItems([]);
     setIsCartOpen(false);
-
-    // Redirect user to tracking panel with newly generated code
-    navigate("/tracking");
-    setSearchedOrderCode(orderId);
-  };
-
-  // Timeline simulator steps
-  const handleSimulateStageUpdate = (orderId: string, currentStatus: OrderStatus) => {
-    const statusFlow: OrderStatus[] = ["confirmado", "preparacion", "en_camino", "entregado"];
-    const currentIndex = statusFlow.indexOf(currentStatus);
-    if (currentIndex === -1 || currentIndex === statusFlow.length - 1) return;
-
-    const nextStatus = statusFlow[currentIndex + 1];
-
-    setOrders((prevOrders) =>
-      prevOrders.map((ord) => {
-        if (ord.id !== orderId) return ord;
-
-        const formattedNow = new Date().toLocaleDateString("es-CO", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-
-        const updatedTimeline = ord.timeline.map((event) => {
-          if (event.status === nextStatus) {
-            return {
-              ...event,
-              completed: true,
-              time: formattedNow,
-            };
-          }
-          // Also complete previous states just in case
-          const previousIndex = statusFlow.indexOf(event.status);
-          const nextIndex = statusFlow.indexOf(nextStatus);
-          if (previousIndex <= nextIndex) {
-            return { ...event, completed: true, time: event.time !== "Pendiente" ? event.time : formattedNow };
-          }
-          return event;
-        });
-
-        return {
-          ...ord,
-          status: nextStatus,
-          timeline: updatedTimeline,
-        };
-      })
-    );
-  };
-
-  const handleResetOrderSimulation = (orderId: string) => {
-    setOrders((prevOrders) =>
-      prevOrders.map((ord) => {
-        if (ord.id !== orderId) return ord;
-
-        const updatedTimeline = ord.timeline.map((event) => {
-          const isConfirmado = event.status === "confirmado";
-          return {
-            ...event,
-            completed: isConfirmado,
-            time: isConfirmado ? event.time : "Pendiente",
-          };
-        });
-
-        return {
-          ...ord,
-          status: "confirmado",
-          timeline: updatedTimeline,
-        };
-      })
-    );
   };
 
   // Filter application algorithms
@@ -513,17 +438,6 @@ export default function App() {
 
             </div>
           } />
-          
-          <Route path="/tracking" element={
-            <div className="bg-neutral-50 min-h-[30rem] flex items-center">
-              <OrderTracker
-                orders={orders}
-                onSimulateStageUpdate={handleSimulateStageUpdate}
-                onResetOrderSimulation={handleResetOrderSimulation}
-                searchedOrderCode={searchedOrderCode}
-              />
-            </div>
-          } />
 
           <Route path="/panel" element={
             <div className="bg-white min-h-[30rem]">
@@ -562,7 +476,6 @@ export default function App() {
             <div>
               <h5 className="text-[10px] font-black tracking-widest text-neutral-400 uppercase mb-4">SOPORTE EXPRESS</h5>
               <div className="flex flex-col gap-2.5 text-xs text-neutral-300 font-black uppercase tracking-wider">
-                <button onClick={() => { navigate("/tracking"); setSearchedOrderCode(null); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer">Seguimiento de Envío</button>
                 <span className="text-left text-neutral-400 cursor-default text-[9px] font-bold">Atención Personalizada de Lunes a Sábado</span>
                 <span className="text-left font-black text-white hover:text-amber-400 text-[10px] break-all">cacao.cosport@gmail.com</span>
                 <button onClick={() => { navigate("/panel"); setSearchedOrderCode(null); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer mt-4">Acceso Administrativo</button>
