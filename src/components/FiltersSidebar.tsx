@@ -58,7 +58,7 @@ export default function FiltersSidebar({ filters, onFiltersChange, onResetFilter
       maximumFractionDigits: 0,
     }).format(price);
   };  return (
-    <div className="bg-white border-2 border-black p-6 flex flex-col gap-6 sticky top-28 select-none">
+    <div className="bg-white lg:border-2 lg:border-black border-0 p-6 flex flex-col gap-6 lg:sticky lg:top-28 select-none">
       
       {/* Header filter title and reset clicker */}
       <div className="flex items-center justify-between border-b-2 border-neutral-100 pb-4">

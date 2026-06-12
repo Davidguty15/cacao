@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
-import { Compass } from "lucide-react";
+import { Compass, Sliders, X } from "lucide-react";
 import { Product, CartItem, Order, FiltersState, ProductCategory, ProductSize, OrderStatus } from "./types";
 import { db } from "./firebase";
 import { collection, onSnapshot, query } from "firebase/firestore";
@@ -52,6 +52,7 @@ export default function App() {
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [firebaseProducts, setFirebaseProducts] = useState<Product[]>([]);
 
   // Fetch products from Firestore
@@ -346,14 +347,38 @@ export default function App() {
                 
                 <div className="flex flex-col lg:flex-row gap-8">
                   
-                  {/* Advanced facet filters on the left */}
-                  <aside className="w-full lg:w-1/4 shrink-0">
+                  {/* Mobile Filters Toggle Button */}
+                  <div className="lg:hidden">
+                    <button
+                      onClick={() => setIsMobileFiltersOpen(true)}
+                      className="w-full flex items-center justify-center gap-2 border-2 border-black bg-white px-4 py-3 text-xs font-black uppercase tracking-widest hover:bg-neutral-100 transition-colors"
+                    >
+                      <Sliders className="w-4 h-4 stroke-[2.5]" /> Mostrar Filtros
+                    </button>
+                  </div>
+
+                  {/* Advanced facet filters (Desktop: left sidebar, Mobile: Drawer) */}
+                  <aside className={`fixed inset-y-0 left-0 z-50 w-4/5 max-w-sm bg-white overflow-y-auto transform transition-transform duration-300 lg:relative lg:inset-auto lg:z-auto lg:w-1/4 lg:max-w-none lg:translate-x-0 lg:overflow-visible ${isMobileFiltersOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"}`}>
+                    <div className="lg:hidden p-4 border-b-2 border-black flex items-center justify-between sticky top-0 bg-white z-10">
+                      <span className="font-black text-xs uppercase tracking-widest">Filtros</span>
+                      <button onClick={() => setIsMobileFiltersOpen(false)} className="text-black hover:text-neutral-500">
+                        <X className="w-5 h-5 stroke-[2.5]" />
+                      </button>
+                    </div>
                     <FiltersSidebar
                       filters={filters}
                       onFiltersChange={setFilters}
                       onResetFilters={() => setFilters(DEFAULT_FILTERS)}
                     />
                   </aside>
+
+                  {/* Overlay for Mobile Filters Drawer */}
+                  {isMobileFiltersOpen && (
+                    <div 
+                      className="fixed inset-0 z-40 bg-black/50 lg:hidden transition-opacity" 
+                      onClick={() => setIsMobileFiltersOpen(false)} 
+                    />
+                  )}
 
                   {/* Garments items catalogue list on the right */}
                   <section className="flex-grow flex flex-col gap-6">
