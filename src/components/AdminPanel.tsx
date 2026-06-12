@@ -201,8 +201,8 @@ export default function AdminPanel() {
             const img = new Image();
             img.onload = () => {
               const canvas = document.createElement("canvas");
-              const MAX_WIDTH = 600;
-              const MAX_HEIGHT = 600;
+              const MAX_WIDTH = 1500;
+              const MAX_HEIGHT = 1500;
               let width = img.width;
               let height = img.height;
 
@@ -222,7 +222,7 @@ export default function AdminPanel() {
               const ctx = canvas.getContext("2d");
               if (!ctx) return reject("Canvas no soportado");
               ctx.drawImage(img, 0, 0, width, height);
-              resolve(canvas.toDataURL("image/webp", 0.6)); // Compress more
+              resolve(canvas.toDataURL("image/webp", 0.85)); // Very high quality while still compressed
             };
             img.onerror = reject;
             img.src = e.target?.result as string;
@@ -243,8 +243,8 @@ export default function AdminPanel() {
               const img = new Image();
               img.onload = () => {
                 const canvas = document.createElement("canvas");
-                const MAX_WIDTH = 600;
-                const MAX_HEIGHT = 600;
+                const MAX_WIDTH = 1500;
+                const MAX_HEIGHT = 1500;
                 let width = img.width;
                 let height = img.height;
                 if (width > height) {
@@ -257,7 +257,7 @@ export default function AdminPanel() {
                 const ctx = canvas.getContext("2d");
                 if (!ctx) return reject("Canvas no soportado");
                 ctx.drawImage(img, 0, 0, width, height);
-                resolve(canvas.toDataURL("image/webp", 0.6));
+                resolve(canvas.toDataURL("image/webp", 0.85));
               };
               img.onerror = reject;
               img.src = e.target?.result as string;

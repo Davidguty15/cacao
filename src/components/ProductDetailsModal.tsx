@@ -15,6 +15,8 @@ export default function ProductDetailsModal({ product, onClose, onAddToCart }: P
   const [quantity, setQuantity] = useState(1);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
   const [addedMessage, setAddedMessage] = useState(false);
+  const [isZooming, setIsZooming] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("es-CO", {
@@ -49,6 +51,13 @@ export default function ProductDetailsModal({ product, onClose, onAddToCart }: P
     }, 1500);
   };
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
+    setMousePos({ x, y });
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
       {/* Backdrop */}
@@ -72,11 +81,15 @@ export default function ProductDetailsModal({ product, onClose, onAddToCart }: P
 
           {/* Left: Gallery and Images */}
           <div className="w-full md:w-1/2 p-6 bg-neutral-50 flex flex-col justify-between border-b-2 md:border-b-0 md:border-r-2 border-black">
-            <div className="flex-grow flex items-center justify-center p-2">
+            <div className="flex-grow flex items-center justify-center p-2 mt-4 overflow-hidden rounded-md border border-transparent hover:border-neutral-200 transition-colors">
               <img
                 src={selectedImage}
                 alt={product.name}
-                className="max-h-[350px] w-auto object-contain object-center mix-blend-multiply scale-102"
+                className={`max-h-[350px] w-auto object-contain object-center mix-blend-multiply cursor-zoom-in transition-transform duration-200 ${isZooming ? 'scale-[2.5]' : 'scale-100'}`}
+                style={isZooming ? { transformOrigin: `${mousePos.x}% ${mousePos.y}%` } : undefined}
+                onMouseEnter={() => setIsZooming(true)}
+                onMouseLeave={() => setIsZooming(false)}
+                onMouseMove={handleMouseMove}
                 referrerPolicy="no-referrer"
               />
             </div>
