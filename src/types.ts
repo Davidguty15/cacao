@@ -1,4 +1,4 @@
-export type ProductCategory = "Shorts" | "Camisas" | "Leggins" | "Chaquetas";
+export type ProductCategory = "Enterizos" | "Chaquetas" | "Shorts" | "Leggins" | "Tops" | "Balacas" | "Medias" | "Termos" | "Camisas";
 
 export type ProductSize = "XS" | "S" | "M" | "L" | "XL" | "XXL" | "Talla Única";
 

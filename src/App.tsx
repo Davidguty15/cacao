@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
-import { Compass, Sliders, X } from "lucide-react";
+import { Compass, Sliders, X, MapPin } from "lucide-react";
 import { Product, CartItem, Order, FiltersState, ProductCategory, ProductSize, OrderStatus } from "./types";
 import { db } from "./firebase";
 import { collection, onSnapshot, query } from "firebase/firestore";
@@ -499,11 +499,18 @@ export default function App() {
 
             {/* Column 3: Trust and support */}
             <div>
-              <h5 className="text-[10px] font-black tracking-widest text-neutral-400 uppercase mb-4">SOPORTE EXPRESS</h5>
+              <h5 className="text-[10px] font-black tracking-widest text-neutral-400 uppercase mb-4">SOPORTE EXPRESS Y TIENDA</h5>
               <div className="flex flex-col gap-2.5 text-xs text-neutral-300 font-black uppercase tracking-wider">
                 <span className="text-left text-neutral-400 cursor-default text-[9px] font-bold">Atención Personalizada de Lunes a Sábado</span>
-                <span className="text-left font-black text-white hover:text-amber-400 text-[10px] break-all">cacao.cosport@gmail.com</span>
-                <button onClick={() => { navigate("/panel"); setSearchedOrderCode(null); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer mt-4">Acceso Administrativo</button>
+                <span className="text-left font-black text-white hover:text-amber-400 text-[10px] break-all mb-2">cacao.cosport@gmail.com</span>
+                <a href="https://maps.app.goo.gl/SNWHMjCPqjTL6VUs5" target="_blank" rel="noopener noreferrer" className="text-left font-black text-white hover:text-amber-400 text-[10px] flex items-start gap-2 group transition-colors">
+                  <MapPin className="w-4 h-4 mt-0.5 group-hover:stroke-amber-400 transition-colors" />
+                  <span>
+                    Visítanos en Nuestra Tienda<br/>
+                    <span className="text-neutral-400 text-[9px] group-hover:text-amber-200 uppercase transition-colors">Ver en Google Maps</span>
+                  </span>
+                </a>
+                <button onClick={() => { navigate("/panel"); }} className="hover:text-amber-400 transition-colors text-left text-[10px] cursor-pointer mt-4">Acceso Administrativo</button>
               </div>
             </div>
 
