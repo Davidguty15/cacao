@@ -25,7 +25,7 @@ export default function AdminPanel() {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState<ProductCategory>("Enterizos");
+  const [category, setCategory] = useState<ProductCategory>("Conjuntos");
   const [sizeOptions, setSizeOptions] = useState<ProductSize[]>(["S", "M", "L"]);
   const [colorOptions, setColorOptions] = useState("Negro");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -166,7 +166,7 @@ export default function AdminPanel() {
     setName("");
     setPrice("");
     setDescription("");
-    setCategory("Enterizos");
+    setCategory("Conjuntos");
     setSizeOptions(["S", "M", "L"]);
     setColorOptions("Negro");
     setStock({});
@@ -478,15 +478,16 @@ export default function AdminPanel() {
             <div>
               <label className="block text-[10px] font-black uppercase tracking-widest text-black mb-2">LÍNEA TEXTIL (CATEGORÍA)</label>
               <select value={category} onChange={e => setCategory(e.target.value as ProductCategory)} className="w-full border-2 border-black p-3.5 text-sm font-black uppercase focus:outline-none focus:border-amber-400 bg-neutral-50 focus:bg-white transition-colors cursor-pointer appearance-none">
-                <option value="Enterizos">01 — ENTERIZOS</option>
-                <option value="Chaquetas">02 — CHAQUETAS</option>
-                <option value="Shorts">03 — SHORTS</option>
-                <option value="Leggins">04 — LEGGINS</option>
-                <option value="Tops">05 — TOPS</option>
-                <option value="Balacas">06 — BALACAS</option>
-                <option value="Medias">07 — MEDIAS</option>
-                <option value="Termos">08 — TERMOS</option>
-                <option value="Camisas">09 — CAMISAS</option>
+                <option value="Conjuntos">01 — CONJUNTOS</option>
+                <option value="Enterizos">02 — ENTERIZOS</option>
+                <option value="Chaquetas">03 — CHAQUETAS</option>
+                <option value="Shorts">04 — SHORTS</option>
+                <option value="Leggins">05 — LEGGINS</option>
+                <option value="Tops">06 — TOPS</option>
+                <option value="Balacas">07 — BALACAS</option>
+                <option value="Medias">08 — MEDIAS</option>
+                <option value="Termos">09 — TERMOS</option>
+                <option value="Camisas">10 — CAMISAS</option>
               </select>
             </div>
             <div>

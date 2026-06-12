@@ -8,7 +8,7 @@ interface FiltersSidebarProps {
   onResetFilters: () => void;
 }
 
-const CATEGORIES: (ProductCategory | "All")[] = ["All", "Enterizos", "Chaquetas", "Shorts", "Leggins", "Tops", "Balacas", "Medias", "Termos", "Camisas"];
+const CATEGORIES: (ProductCategory | "All")[] = ["All", "Conjuntos", "Enterizos", "Chaquetas", "Shorts", "Leggins", "Tops", "Balacas", "Medias", "Termos", "Camisas"];
 const SIZES: ProductSize[] = ["XS", "S", "M", "L", "XL", "XXL"];
 const COLORS = ["Negro Obsidiana", "Gris Plata", "Blanco Óptico", "Gris Carbón"];
 
